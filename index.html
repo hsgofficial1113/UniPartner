@@ -31,20 +31,20 @@
             transition: background 0.8s ease;
         }
 
-        /* --- BACKGROUND (Fix: pointer-events none) --- */
+        /* --- BACKGROUND --- */
         .glow-spot {
             position: fixed; top: -20%; left: -20%; width: 60vw; height: 60vw;
             background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             z-index: -1; animation: float 10s infinite alternate;
             transition: background 0.8s ease;
-            pointer-events: none; /* KEY FIX */
+            pointer-events: none;
         }
         .glow-spot-2 {
             position: fixed; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
             background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             z-index: -1; animation: float 12s infinite alternate-reverse;
             transition: background 0.8s ease;
-            pointer-events: none; /* KEY FIX */
+            pointer-events: none;
         }
         @keyframes float { to { transform: translate(50px, 50px); } }
         #hearts-canvas { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
@@ -54,9 +54,8 @@
             padding: 15px 5%;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 50; flex-shrink: 0;
-            pointer-events: none; /* Let clicks pass through empty header space */
+            pointer-events: none;
         }
-        /* Re-enable clicks for header items */
         header > * { pointer-events: auto; }
         
         .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
@@ -80,7 +79,8 @@
         /* --- TAGLINE --- */
         .top-tagline-container {
             text-align: center; width: 100%; z-index: 40;
-            padding: 10px 0; flex-shrink: 0; margin-top: -60px;
+            padding: 10px 0; flex-shrink: 0; 
+            margin-top: -60px; /* Default desktop position (Up) */
             pointer-events: none;
         }
         .tagline-badge {
@@ -96,7 +96,7 @@
             flex-grow: 1; display: flex; justify-content: center; align-items: center;
             position: relative; width: 100%; overflow: hidden;
             perspective: 1000px; 
-            z-index: 60; /* Ensure main stage is above background elements */
+            z-index: 60;
         }
 
         .orbit-container {
@@ -114,7 +114,7 @@
             transform: rotate(var(--deg));
             z-index: 0;
             background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-            pointer-events: none; /* FIX: Lines shouldn't block clicks */
+            pointer-events: none;
         }
         .connector::after {
             content: ''; position: absolute; left: 0; top: -1px;
@@ -128,7 +128,7 @@
         .connector.active::after { animation: shootLaser 0.5s linear forwards; opacity: 1; }
         @keyframes shootLaser { 0% { left: 10%; opacity: 0; } 20% { opacity: 1; } 100% { left: 90%; opacity: 0; } }
 
-        /* --- CENTER BUTTON (FIXED) --- */
+        /* --- CENTER BUTTON --- */
         .center-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 35%; height: 35%;
@@ -137,12 +137,7 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; text-decoration: none; 
             box-shadow: 0 0 40px var(--accent-glow);
-            
-            /* KEY FIXES FOR CLICKABILITY */
-            z-index: 9999; 
-            cursor: pointer;
-            pointer-events: auto;
-            
+            z-index: 9999; cursor: pointer; pointer-events: auto;
             transition: all 0.5s ease;
         }
         .center-btn:hover { background: var(--accent); transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 80px var(--accent); }
@@ -155,16 +150,12 @@
             background: #111; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg)));
-            z-index: 100; /* High z-index */
-            transition: all 0.5s ease;
-            cursor: pointer;
-            pointer-events: auto;
+            z-index: 100; transition: all 0.5s ease;
+            cursor: pointer; pointer-events: auto;
         }
         
         .faculty-node.active, .faculty-node:hover { 
-            border-color: var(--accent); 
-            background: var(--accent); 
-            z-index: 101; 
+            border-color: var(--accent); background: var(--accent); z-index: 101; 
             transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg))) scale(1.3); 
             box-shadow: 0 0 60px var(--accent);
         }
@@ -185,7 +176,7 @@
             position: fixed; inset: 0; background: #000; z-index: 10000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             animation: fadeOut 1s ease 2.5s forwards;
-            pointer-events: none; /* Ensures intro allows clicks after fading */
+            pointer-events: none;
         }
         .intro-heart { font-size: 5rem; color: var(--accent); animation: beat 0.8s infinite; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--accent)); transition: color 0.5s; }
         .intro-text { font-family: 'Syncopate'; font-size: 2rem; color: #fff; letter-spacing: 5px; opacity: 0; animation: slideUp 1s ease 0.5s forwards; }
@@ -211,12 +202,25 @@
         @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
+        /* --- MOBILE ADJUSTMENTS --- */
         @media (max-width: 600px) {
             .orbit-container { width: 90vw; height: 90vw; }
             .faculty-node { transform: translate(-50%, -50%) rotate(var(--deg)) translate(220%) rotate(calc(-1 * var(--deg))); }
-            .header { padding: 10px; }
+            
+            /* Fix Header Padding typo in previous version */
+            header { padding: 10px; }
             .clock { font-size: 1.5rem; }
             .live-feed-container { bottom: 60px; left: 10px; right: 10px; }
+
+            /* --- KEY FIX: Move tagline down on mobile --- */
+            .top-tagline-container {
+                margin-top: 0px; /* Reset negative margin */
+                margin-bottom: 10px; /* Add spacing below */
+            }
+            .tagline-badge {
+                font-size: 0.6rem; /* Slightly smaller text for mobile */
+                padding: 6px 15px;
+            }
         }
     </style>
 </head>
