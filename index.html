@@ -11,7 +11,7 @@
     <style>
         :root {
             --accent: #ff0055;
-            --accent-glow: rgba(255, 0, 85, 0.6);
+            --accent-glow: rgba(255, 0, 85, 0.4);
             --gold: #FFD700;
             --glass-border: rgba(255, 255, 255, 0.15);
         }
@@ -19,7 +19,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: radial-gradient(circle at 50% 50%, #1a000d 0%, #000000 80%);
+            background: radial-gradient(circle at 50% 50%, #050002 0%, #000000 100%);
             font-family: 'Inter', sans-serif;
             color: white;
             height: 100dvh; 
@@ -27,32 +27,40 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            overflow: hidden; 
+            overflow: hidden;
+            transition: background 0.8s ease;
         }
 
-        /* --- BACKGROUND --- */
+        /* --- BACKGROUND (Fix: pointer-events none) --- */
         .glow-spot {
             position: fixed; top: -20%; left: -20%; width: 60vw; height: 60vw;
-            background: radial-gradient(circle, rgba(255, 0, 85, 0.15), transparent 70%);
+            background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             z-index: -1; animation: float 10s infinite alternate;
+            transition: background 0.8s ease;
+            pointer-events: none; /* KEY FIX */
         }
         .glow-spot-2 {
             position: fixed; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
-            background: radial-gradient(circle, rgba(60, 0, 255, 0.1), transparent 70%);
+            background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             z-index: -1; animation: float 12s infinite alternate-reverse;
+            transition: background 0.8s ease;
+            pointer-events: none; /* KEY FIX */
         }
         @keyframes float { to { transform: translate(50px, 50px); } }
-        #hearts-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        #hearts-canvas { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
 
         /* --- HEADER --- */
         header {
             padding: 15px 5%;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 50; flex-shrink: 0;
+            pointer-events: none; /* Let clicks pass through empty header space */
         }
+        /* Re-enable clicks for header items */
+        header > * { pointer-events: auto; }
         
         .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
-        .logo i { color: var(--accent); margin-right: 8px; }
+        .logo i { color: var(--accent); margin-right: 8px; transition: color 0.5s ease; }
 
         .dashboard-pill {
             background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
@@ -60,21 +68,11 @@
             display: flex; align-items: center; gap: 20px;
         }
         
-        /* BIGGER CLOCK STYLES */
-        .clock { 
-            font-size: 2.2rem; /* Much Larger */
-            font-weight: 700; 
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            letter-spacing: 1px;
-        }
+        .clock { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: 1px; }
         .date { 
-            font-size: 0.8rem; 
-            color: var(--accent); 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            display: block; 
-            margin-top: 4px;
+            font-size: 0.8rem; color: var(--accent); font-weight: 700; 
+            text-transform: uppercase; display: block; margin-top: 4px;
+            transition: color 0.5s ease;
         }
         .live-dot { width: 12px; height: 12px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 15px #00ff88; animation: pulse 1.5s infinite; }
         @keyframes pulse { 50% { opacity: 0.5; } }
@@ -82,9 +80,8 @@
         /* --- TAGLINE --- */
         .top-tagline-container {
             text-align: center; width: 100%; z-index: 40;
-            padding: 10px 0; flex-shrink: 0;
-            /* ADD THIS LINE TO MOVE IT UP */
-            margin-top: -60px; 
+            padding: 10px 0; flex-shrink: 0; margin-top: -60px;
+            pointer-events: none;
         }
         .tagline-badge {
             display: inline-block; color: var(--gold); border: 1px solid var(--gold);
@@ -98,11 +95,15 @@
         .main-stage {
             flex-grow: 1; display: flex; justify-content: center; align-items: center;
             position: relative; width: 100%; overflow: hidden;
+            perspective: 1000px; 
+            z-index: 60; /* Ensure main stage is above background elements */
         }
 
         .orbit-container {
             width: min(85vw, 55vh); height: min(85vw, 55vh);
             position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
         }
 
         /* --- LASER BEAMS --- */
@@ -112,59 +113,60 @@
             transform-origin: left center;
             transform: rotate(var(--deg));
             z-index: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 0, 85, 0.2) 50%, transparent 100%);
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+            pointer-events: none; /* FIX: Lines shouldn't block clicks */
         }
         .connector::after {
             content: ''; position: absolute; left: 0; top: -1px;
             width: 60px; height: 4px;
             background: linear-gradient(90deg, transparent, var(--accent), transparent);
             border-radius: 50%;
-            /* 3s Duration for the laser travel */
-            animation: flowData 3s infinite ease-in-out;
-            animation-delay: var(--delay);
+            opacity: 0;
             filter: drop-shadow(0 0 5px var(--accent));
+            transition: background 0.3s ease;
         }
-        @keyframes flowData { 0% { left: 10%; opacity: 0; } 50% { opacity: 1; } 90% { left: 100%; opacity: 0; } 100% { left: 100%; opacity: 0;} }
+        .connector.active::after { animation: shootLaser 0.5s linear forwards; opacity: 1; }
+        @keyframes shootLaser { 0% { left: 10%; opacity: 0; } 20% { opacity: 1; } 100% { left: 90%; opacity: 0; } }
 
-        /* --- CENTER BUTTON --- */
+        /* --- CENTER BUTTON (FIXED) --- */
         .center-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 35%; height: 35%;
-            background: rgba(255, 0, 85, 0.1); backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
             border: 2px solid var(--accent); border-radius: 50%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; text-decoration: none; box-shadow: 0 0 40px var(--accent-glow);
-            z-index: 20; transition: 0.3s;
+            color: white; text-decoration: none; 
+            box-shadow: 0 0 40px var(--accent-glow);
+            
+            /* KEY FIXES FOR CLICKABILITY */
+            z-index: 9999; 
+            cursor: pointer;
+            pointer-events: auto;
+            
+            transition: all 0.5s ease;
         }
         .center-btn:hover { background: var(--accent); transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 80px var(--accent); }
         .center-btn span { font-size: clamp(0.8rem, 2.5vw, 1.2rem); font-weight: 800; text-transform: uppercase; }
 
-        /* --- FACULTY CARDS (With Impact Animation) --- */
+        /* --- FACULTY NODES --- */
         .faculty-node {
             position: absolute; top: 50%; left: 50%;
             width: 18%; height: 18%;
             background: #111; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg)));
-            z-index: 10; transition: 0.3s;
-            
-            /* ADDED SYNCED GLOW ANIMATION */
-            animation: impactPulse 3s infinite ease-in-out;
-            animation-delay: var(--delay);
+            z-index: 100; /* High z-index */
+            transition: all 0.5s ease;
+            cursor: pointer;
+            pointer-events: auto;
         }
         
-        .faculty-node:hover { border-color: var(--accent); background: var(--accent); z-index: 30; transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg))) scale(1.2); }
-        
-        /* The Glow Animation: Matches the laser arrival time */
-        @keyframes impactPulse {
-            0%, 60% { box-shadow: 0 0 0 transparent; border-color: rgba(255,255,255,0.3); background: #111; }
-            85% { /* IMPACT POINT */
-                box-shadow: 0 0 30px var(--accent); 
-                border-color: var(--accent); 
-                background: var(--accent);
-                transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg))) scale(1.1);
-            }
-            100% { box-shadow: 0 0 0 transparent; background: #111; }
+        .faculty-node.active, .faculty-node:hover { 
+            border-color: var(--accent); 
+            background: var(--accent); 
+            z-index: 101; 
+            transform: translate(-50%, -50%) rotate(var(--deg)) translate(260%) rotate(calc(-1 * var(--deg))) scale(1.3); 
+            box-shadow: 0 0 60px var(--accent);
         }
 
         .faculty-node i { font-size: clamp(0.9rem, 2vw, 1.4rem); color: #fff; margin-bottom: 2px; }
@@ -175,55 +177,46 @@
             padding: 15px; text-align: center;
             font-size: 0.7rem; color: #666; letter-spacing: 1px;
             z-index: 50; flex-shrink: 0; background: rgba(0,0,0,0.5);
+            pointer-events: none;
         }
 
-        /* --- INTRO --- */
+        /* --- INTRO & NOTIFICATIONS --- */
         #intro-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
+            position: fixed; inset: 0; background: #000; z-index: 10000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             animation: fadeOut 1s ease 2.5s forwards;
+            pointer-events: none; /* Ensures intro allows clicks after fading */
         }
-        .intro-heart { font-size: 5rem; color: var(--accent); animation: beat 0.8s infinite; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--accent)); }
+        .intro-heart { font-size: 5rem; color: var(--accent); animation: beat 0.8s infinite; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--accent)); transition: color 0.5s; }
         .intro-text { font-family: 'Syncopate'; font-size: 2rem; color: #fff; letter-spacing: 5px; opacity: 0; animation: slideUp 1s ease 0.5s forwards; }
-        
         @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         @keyframes slideUp { to { opacity: 1; transform: translateY(0); } from { transform: translateY(20px); } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* --- NEW: LIVE NOTIFICATION FEED --- */
         .live-feed-container {
             position: fixed; bottom: 80px; left: 20px;
             display: flex; flex-direction: column; gap: 10px;
             z-index: 100; pointer-events: none;
         }
-
         .feed-item {
-            background: rgba(0, 0, 0, 0.8);
-            border-left: 3px solid var(--accent);
-            padding: 10px 20px;
-            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.8); border-left: 3px solid var(--accent);
+            padding: 10px 20px; border-radius: 4px;
             font-size: 0.75rem; color: #fff;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             animation: slideInLeft 0.5s ease, fadeOut 0.5s ease 3.5s forwards;
             display: flex; align-items: center; gap: 10px;
+            transition: border-color 0.5s;
         }
-
-        .feed-item i { color: var(--accent); }
-
+        .feed-item i { color: var(--accent); transition: color 0.5s; }
         @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
-
-        /* Mobile Adjustments */
         @media (max-width: 600px) {
             .orbit-container { width: 90vw; height: 90vw; }
             .faculty-node { transform: translate(-50%, -50%) rotate(var(--deg)) translate(220%) rotate(calc(-1 * var(--deg))); }
             .header { padding: 10px; }
-            .clock { font-size: 1.5rem; } /* Slightly smaller on very small phones, but still big */
-            
-            /* Feed adjustments for mobile */
+            .clock { font-size: 1.5rem; }
             .live-feed-container { bottom: 60px; left: 10px; right: 10px; }
-            .feed-item { font-size: 0.7rem; }
         }
     </style>
 </head>
@@ -256,29 +249,29 @@
     <div class="main-stage">
         <div class="orbit-container">
             
-            <div class="connector" style="--deg: 0deg; --delay: 0s;"></div>
-            <div class="connector" style="--deg: 40deg; --delay: 0.2s;"></div>
-            <div class="connector" style="--deg: 80deg; --delay: 0.4s;"></div>
-            <div class="connector" style="--deg: 120deg; --delay: 0.6s;"></div>
-            <div class="connector" style="--deg: 160deg; --delay: 0.8s;"></div>
-            <div class="connector" style="--deg: 200deg; --delay: 1.0s;"></div>
-            <div class="connector" style="--deg: 240deg; --delay: 1.2s;"></div>
-            <div class="connector" style="--deg: 280deg; --delay: 1.4s;"></div>
-            <div class="connector" style="--deg: 320deg; --delay: 1.6s;"></div>
+            <div class="connector" style="--deg: 0deg;"></div>
+            <div class="connector" style="--deg: 40deg;"></div>
+            <div class="connector" style="--deg: 80deg;"></div>
+            <div class="connector" style="--deg: 120deg;"></div>
+            <div class="connector" style="--deg: 160deg;"></div>
+            <div class="connector" style="--deg: 200deg;"></div>
+            <div class="connector" style="--deg: 240deg;"></div>
+            <div class="connector" style="--deg: 280deg;"></div>
+            <div class="connector" style="--deg: 320deg;"></div>
 
-            <a href="auth.html" class="center-btn">
+            <a href="auth.html" class="center-btn" onclick="handleLogin(event, this)">
                 <span>Login</span>
             </a>
 
-            <div class="faculty-node" style="--deg: 0deg; --delay: 0s;"><i class="fas fa-cogs"></i><span>Eng</span></div>
-            <div class="faculty-node" style="--deg: 40deg; --delay: 0.2s;"><i class="fas fa-user-md"></i><span>Med</span></div>
-            <div class="faculty-node" style="--deg: 80deg; --delay: 0.4s;"><i class="fas fa-flask"></i><span>Sci</span></div>
-            <div class="faculty-node" style="--deg: 120deg; --delay: 0.6s;"><i class="fas fa-palette"></i><span>Arts</span></div>
-            <div class="faculty-node" style="--deg: 160deg; --delay: 0.8s;"><i class="fas fa-leaf"></i><span>Agri</span></div>
-            <div class="faculty-node" style="--deg: 200deg; --delay: 1.0s;"><i class="fas fa-tooth"></i><span>Dent</span></div>
-            <div class="faculty-node" style="--deg: 240deg; --delay: 1.2s;"><i class="fas fa-paw"></i><span>Vet</span></div>
-            <div class="faculty-node" style="--deg: 280deg; --delay: 1.4s;"><i class="fas fa-chart-line"></i><span>Mgt</span></div>
-            <div class="faculty-node" style="--deg: 320deg; --delay: 1.6s;"><i class="fas fa-heartbeat"></i><span>AHS</span></div>
+            <div class="faculty-node" style="--deg: 0deg;"><i class="fas fa-cogs"></i><span>Eng</span></div>
+            <div class="faculty-node" style="--deg: 40deg;"><i class="fas fa-user-md"></i><span>Med</span></div>
+            <div class="faculty-node" style="--deg: 80deg;"><i class="fas fa-flask"></i><span>Sci</span></div>
+            <div class="faculty-node" style="--deg: 120deg;"><i class="fas fa-palette"></i><span>Arts</span></div>
+            <div class="faculty-node" style="--deg: 160deg;"><i class="fas fa-leaf"></i><span>Agri</span></div>
+            <div class="faculty-node" style="--deg: 200deg;"><i class="fas fa-tooth"></i><span>Dent</span></div>
+            <div class="faculty-node" style="--deg: 240deg;"><i class="fas fa-paw"></i><span>Vet</span></div>
+            <div class="faculty-node" style="--deg: 280deg;"><i class="fas fa-chart-line"></i><span>Mgt</span></div>
+            <div class="faculty-node" style="--deg: 320deg;"><i class="fas fa-heartbeat"></i><span>AHS</span></div>
 
         </div>
     </div>
@@ -290,7 +283,7 @@
     </footer>
 
     <script>
-        // CLOCK
+        // --- 1. CLOCK ---
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
@@ -298,7 +291,107 @@
         }
         setInterval(updateClock, 1000); updateClock();
 
-        // HEARTS
+        // --- 2. AUTO-SCANNING COLORS ---
+        const root = document.documentElement;
+        
+        const facultyColors = [
+            '#00d2ff', // Eng - Cyan
+            '#00ff88', // Med - Green
+            '#9d00ff', // Sci - Purple
+            '#ff00cc', // Arts - Pink
+            '#76ff03', // Agri - Lime
+            '#ffffff', // Dent - White
+            '#ff9100', // Vet - Orange
+            '#ffd700', // Mgt - Gold
+            '#00e5ff'  // AHS - Teal
+        ];
+        
+        const facultyGlows = [
+            'rgba(0, 210, 255, 0.4)', 'rgba(0, 255, 136, 0.4)', 'rgba(157, 0, 255, 0.4)',
+            'rgba(255, 0, 204, 0.4)', 'rgba(118, 255, 3, 0.4)', 'rgba(255, 255, 255, 0.4)',
+            'rgba(255, 145, 0, 0.4)', 'rgba(255, 215, 0, 0.4)', 'rgba(0, 229, 255, 0.4)'
+        ];
+
+        const nodes = document.querySelectorAll('.faculty-node');
+        const connectors = document.querySelectorAll('.connector');
+        let activeIndex = 0;
+        let isHovering = false; 
+
+        function setActive(index) {
+            nodes.forEach(n => n.classList.remove('active'));
+            connectors.forEach(c => c.classList.remove('active'));
+
+            nodes[index].classList.add('active');
+            connectors[index].classList.add('active');
+
+            root.style.setProperty('--accent', facultyColors[index]);
+            root.style.setProperty('--accent-glow', facultyGlows[index]);
+        }
+
+        setInterval(() => {
+            if(!isHovering) {
+                setActive(activeIndex);
+                activeIndex = (activeIndex + 1) % nodes.length;
+            }
+        }, 1000); 
+
+        nodes.forEach((node, index) => {
+            node.addEventListener('mouseenter', () => {
+                isHovering = true;
+                setActive(index);
+                activeIndex = index; 
+            });
+            node.addEventListener('mouseleave', () => {
+                isHovering = false;
+            });
+        });
+
+        // --- 3. 3D TILT & RELIABLE LOGIN ---
+        const orbit = document.querySelector('.orbit-container');
+        let isWarping = false;
+
+        // Reset state when page loads (fixes Back button issue)
+        window.onpageshow = function() {
+            isWarping = false;
+            orbit.style.transition = 'transform 0.1s ease-out';
+            orbit.style.transform = 'scale(1) rotate(0deg)';
+            orbit.style.opacity = '1';
+            document.body.style.background = 'radial-gradient(circle at 50% 50%, #050002 0%, #000000 100%)';
+            document.querySelector('.top-tagline-container').style.opacity = '1';
+        };
+
+        document.addEventListener('mousemove', (e) => {
+            if(isWarping) return;
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            orbit.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        document.addEventListener('mouseleave', () => {
+            if(isWarping) return;
+            orbit.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        // Direct function call for reliability
+        window.handleLogin = function(e, btn) {
+            e.preventDefault();
+            const href = btn.getAttribute('href');
+            isWarping = true;
+            
+            // Visual feedback immediately
+            orbit.style.transition = 'transform 0.8s ease-in, opacity 0.5s';
+            orbit.style.transform = 'scale(15) rotate(180deg)';
+            orbit.style.opacity = '0';
+            
+            document.body.style.background = '#000';
+            document.querySelector('.top-tagline-container').style.opacity = '0';
+            
+            setTimeout(() => {
+                window.location.href = href;
+            }, 800);
+        }
+
+        // --- 4. HEARTS ---
         const canvas = document.getElementById('hearts-canvas');
         const ctx = canvas.getContext('2d');
         let hearts = [];
@@ -312,36 +405,28 @@
                 this.speed = 0.5 + Math.random(); this.size = 5 + Math.random() * 8; this.opacity = 0.1 + Math.random() * 0.4;
             }
             update() { this.y -= this.speed; if(this.y < -20) this.reset(); }
-            draw() { ctx.fillStyle = `rgba(255, 0, 85, ${this.opacity})`; ctx.font = `${this.size}px Arial`; ctx.fillText('❤', this.x, this.y); }
+            draw() { ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`; ctx.font = `${this.size}px Arial`; ctx.fillText('❤', this.x, this.y); }
         }
         function initHearts() { for(let i=0; i<30; i++) hearts.push(new Heart()); animate(); }
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); hearts.forEach(h => { h.update(); h.draw(); }); requestAnimationFrame(animate); }
         initHearts();
 
-        // --- LIVE NOTIFICATIONS SCRIPT ---
+        // --- 5. NOTIFICATIONS ---
         const feed = document.getElementById('live-feed');
-        const faculties = ['Engineering', 'Medicine', 'Arts', 'Science', 'Management', 'Dental', 'Vet', 'Agri', 'AHS'];
+        const facultiesArr = ['Engineering', 'Medicine', 'Arts', 'Science', 'Management', 'Dental', 'Vet', 'Agri', 'AHS'];
         const actions = ['just matched!', 'is now online.', 'posted a confession.', 'found a soulmate!', 'sent a crush request.'];
 
         function showNotification() {
             const item = document.createElement('div');
             item.classList.add('feed-item');
-            
-            const randomFaculty = faculties[Math.floor(Math.random() * faculties.length)];
+            const randomFaculty = facultiesArr[Math.floor(Math.random() * facultiesArr.length)];
             const randomAction = actions[Math.floor(Math.random() * actions.length)];
-            
             item.innerHTML = `<i class="fas fa-bolt"></i> <span><b>${randomFaculty}</b>: Someone ${randomAction}</span>`;
-            
             feed.appendChild(item);
-            
-            // Remove after animation (4s)
             setTimeout(() => { item.remove(); }, 4000);
         }
+        setInterval(() => { if(Math.random() > 0.3) showNotification(); }, 3000);
 
-        // Trigger a new notification every 3-6 seconds
-        setInterval(() => {
-            if(Math.random() > 0.3) showNotification();
-        }, 3000);
     </script>
 </body>
 </html>
