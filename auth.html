@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UniPartner | Authenticate</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@400;600&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        /* --- CORE THEME --- */
+        :root {
+            --accent: #ff0055;
+            --accent-glow: rgba(255, 0, 85, 0.5);
+            --success: #00ff88;
+            --gold: #FFD700;
+            --glass: rgba(18, 18, 18, 0.95);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a000d 0%, #000000 100%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100dvh; /* Handles mobile keyboard better */
+            width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        .auth-container {
+            width: 100%; max-width: 1000px; height: 85vh;
+            display: flex;
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.6);
+            overflow: hidden;
+            z-index: 10;
+            transition: all 0.4s ease;
+        }
+
+        .info-panel {
+            width: 40%;
+            background: linear-gradient(135deg, rgba(255,0,85,0.1), #050505);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 40px; text-align: center; border-right: 1px solid var(--border);
+        }
+        .info-panel h2 { 
+            font-family: 'Syncopate', sans-serif; font-size: 2rem; 
+            margin-bottom: 15px; color: var(--accent); letter-spacing: 2px;
+        }
+        .back-btn {
+            color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.8rem;
+            border: 1px solid var(--border); padding: 10px 25px; border-radius: 50px;
+            margin-top: 30px; transition: 0.3s;
+        }
+
+        .form-panel { 
+            width: 60%; padding: 40px; 
+            overflow-y: auto; display: flex; flex-direction: column; 
+            position: relative;
+        }
+        .form-panel::-webkit-scrollbar { width: 4px; }
+        .form-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* --- INPUTS & EYE ICON --- */
+        .form-box { display: flex; flex-direction: column; gap: 20px; width: 100%; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .hidden { display: none !important; }
+
+        h3 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 5px; }
+        .subtitle { font-size: 0.9rem; opacity: 0.5; margin-bottom: 20px; }
+
+        .input-group { width: 100%; position: relative; } /* Relative for absolute icon */
+        .row { display: flex; gap: 15px; }
+        
+        label { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: block; }
+        
+        input, select {
+            width: 100%; padding: 14px;
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid var(--border);
+            border-radius: 10px; color: #fff; outline: none; 
+            font-family: 'Inter', sans-serif; font-size: 1rem;
+        }
+        input:focus { border-color: var(--accent); background: rgba(255,255,255,0.05); }
+        select option { background: #000; color: #fff; }
+        
+        /* PASSWORD EYE ICON */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 42px; /* Aligns with input text */
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            z-index: 10;
+        }
+        .password-toggle:hover { color: var(--accent); }
+
+        #auto-email { color: var(--gold); border-color: rgba(255, 215, 0, 0.3); cursor: not-allowed; font-weight: 600; }
+
+        .main-btn {
+            width: 100%; padding: 16px; 
+            background: var(--accent); color: white; border: none; border-radius: 50px; 
+            font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            cursor: pointer; margin-top: 10px;
+            box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3);
+        }
+        .main-btn:disabled { background: #333; cursor: not-allowed; box-shadow: none; }
+
+        .toggle-text { text-align: center; margin-top: 20px; font-size: 0.9rem; cursor: pointer; }
+        .toggle-text span { color: var(--accent); text-decoration: underline; font-weight: bold; }
+        .forgot-link { text-align: right; display: block; font-size: 0.8rem; color: #888; margin-top: -10px; cursor: pointer; }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            background: rgba(20, 20, 20, 0.95); border-left: 4px solid var(--accent);
+            padding: 15px 25px; border-radius: 8px; color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px;
+            font-size: 0.9rem; animation: slideIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .toast.success { border-left-color: var(--success); }
+        .toast i { font-size: 1.2rem; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
+
+        /* --- OTP MODAL --- */
+        #otp-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
+        }
+        .otp-box input { font-size: 2.5rem; letter-spacing: 15px; text-align: center; width: 280px; border-color: var(--accent); margin-bottom: 25px; background: transparent; }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .auth-container { flex-direction: column; height: 100dvh; border-radius: 0; border: none; }
+            .info-panel { height: 100px; width: 100%; flex-shrink: 0; flex-direction: row; justify-content: space-between; padding: 20px; border-bottom: 1px solid var(--border); border-right: none; }
+            .info-panel h2 { font-size: 1.4rem; margin: 0; }
+            .back-btn { margin: 0; padding: 8px 15px; font-size: 0.7rem; }
+            /* Extra padding at bottom for scrolling past keyboard */
+            .form-panel { width: 100%; height: 100%; padding: 25px; padding-bottom: 150px; }
+            .row { flex-direction: column; gap: 15px; }
+            h3 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-spot"></div>
+    <div id="toast-container"></div>
+
+    <div class="auth-container">
+        <div class="info-panel">
+            <div>
+                <h2>UniPartner</h2>
+                <p style="opacity:0.7; font-size:0.85rem;">SRI LANKA'S PREMIUM CAMPUS NETWORK</p>
+            </div>
+            <a href="index.html" class="back-btn">HOME</a>
+        </div>
+
+        <div class="form-panel">
+            
+            <div id="login-form" class="form-box">
+                <div><h3>Login</h3><span class="subtitle">Access your portal</span></div>
+                
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="e.g. e20123@eng.pdn.ac.lk">
+                </div>
+                
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" placeholder="••••••••">
+                    <i class="fas fa-eye password-toggle" onclick="togglePass('login-pass', this)"></i>
+                </div>
+                
+                <span class="forgot-link" onclick="switchForm('forgot')">Forgot Password?</span>
+                <button class="main-btn" onclick="runLogin()">Login to Dashboard</button>
+                <div class="toggle-text" onclick="switchForm('signup')">New Batch? <span>Create Account</span></div>
+            </div>
+
+            <div id="forgot-form" class="form-box hidden">
+                <div><h3>Recovery</h3><span class="subtitle">We'll send a link to your email</span></div>
+                <div class="input-group">
+                    <label>University Email</label>
+                    <input type="email" id="forgot-email">
+                </div>
+                <button class="main-btn" onclick="runForgot()">Send Reset Link</button>
+                <div class="toggle-text" onclick="switchForm('login')"><span>Back to Login</span></div>
+            </div>
+
+            <div id="signup-form" class="form-box hidden">
+                <div><h3>Register</h3><span class="subtitle">Exclusive for Students</span></div>
+                
+                <div class="row">
+                    <div class="input-group"><label>First Name</label><input type="text" id="fname"></div>
+                    <div class="input-group"><label>Last Name</label><input type="text" id="lname"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>University</label>
+                    <select id="uni-select"><option value="pdn">University of Peradeniya</option></select>
+                </div>
+
+                <div class="input-group">
+                    <label>Faculty</label>
+                    <select id="faculty-select" onchange="runAutoEmail()">
+                        <option value="">Select Faculty...</option>
+                        <option value="eng">Engineering (E/..)</option>
+                        <option value="med">Medicine (M/..)</option>
+                        <option value="sci">Science (S/..)</option>
+                        <option value="arts">Arts (A/..)</option>
+                        <option value="agri">Agriculture (AG/..)</option>
+                        <option value="dent">Dental (D/..)</option>
+                        <option value="vet">Vet Medicine (V/..)</option>
+                        <option value="mgt">Management (MG/..)</option>
+                        <option value="ahs">Allied Health (AH/..)</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label>Reg No (Prefix/YY/XXX)</label>
+                        <input type="text" id="reg-no" placeholder="e.g. E/20/123" oninput="runAutoEmail()">
+                    </div>
+                    <div class="input-group">
+                        <label>Gender</label>
+                        <select id="gender"><option value="Male">Male</option><option value="Female">Female</option></select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Official Email (Auto)</label>
+                    <input type="text" id="auto-email" readonly placeholder="Fill details above">
+                </div>
+
+                <div class="input-group"><label>Date of Birth</label><input type="date" id="dob"></div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="reg-pass">
+                        <i class="fas fa-eye password-toggle" onclick="togglePass('reg-pass', this)"></i>
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm</label>
+                        <input type="password" id="confirm-pass">
+                    </div>
+                </div>
+
+                <button class="main-btn" id="send-code-btn" onclick="runSendCode()">Send Verification Code</button>
+                <div class="toggle-text" onclick="switchForm('login')">Has Account? <span>Login Here</span></div>
+            </div>
+
+            <div id="otp-overlay" class="hidden">
+                <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
+                <h3>Verify</h3>
+                <p>Enter the 6-digit code sent to your email.</p>
+                <div class="otp-box"><input type="text" id="otp-input" placeholder="000000" maxlength="6"></div>
+                <button class="main-btn" onclick="runVerify()">Verify & Create</button>
+                <div class="toggle-text" onclick="closeOtp()"><span>Cancel</span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 1. YOUR API KEYS
+        // ============================================
+        const SUPABASE_URL = 'https://qfphldkagncbdayxbwkm.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcGhsZGthZ25jYmRheXhid2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjEwNDUsImV4cCI6MjA4NDg5NzA0NX0.1wFaOihsBx5dMkVzHviqDEwAKd9EDnNIr1WqpPVgJLY';
+        const EMAILJS_KEY = 'Cl-cXZP3VC90OrqLE';
+        const EMAILJS_SERVICE = 'service_fqey4o9';
+        const EMAILJS_TEMPLATE = 'template_xojinfj';
+
+        // ============================================
+        // 2. HELPER FUNCTIONS (UI)
+        // ============================================
+        function showToast(msg, type='error') {
+            const box = document.getElementById('toast-container');
+            const div = document.createElement('div');
+            div.className = `toast ${type}`;
+            div.innerHTML = `<i class="fas ${type==='success'?'fa-check':'fa-exclamation-circle'}"></i> <span>${msg}</span>`;
+            box.appendChild(div);
+            setTimeout(()=>div.remove(), 4000);
+        }
+
+        function switchForm(name) {
+            document.querySelectorAll('.form-box, #otp-overlay').forEach(el => el.classList.add('hidden'));
+            document.getElementById(name + '-form').classList.remove('hidden');
+        }
+
+        function closeOtp() {
+            document.getElementById('otp-overlay').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        }
+
+        function togglePass(id, icon) {
+            const input = document.getElementById(id);
+            if(input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function runAutoEmail() {
+            const fac = document.getElementById('faculty-select').value;
+            const reg = document.getElementById('reg-no').value.toUpperCase();
+            const out = document.getElementById('auto-email');
+            
+            const map = {
+                "eng": { p: "E", d: "eng", m: "e" },
+                "med": { p: "M", d: "med", m: "m" },
+                "sci": { p: "S", d: "sci", m: "s" },
+                "arts":{ p: "A", d: "arts",m: "a" },
+                "agri":{ p: "AG", d: "agri",m: "ag" },
+                "dent":{ p: "D", d: "dent",m: "d" },
+                "vet": { p: "V", d: "vet", m: "v" },
+                "mgt": { p: "MG", d: "mgt", m: "mg" },
+                "ahs": { p: "AH", d: "ahs", m: "ah" }
+            };
+
+            if(fac && map[fac]) {
+                const parts = reg.split('/');
+                if(parts.length === 3 && parts[0] === map[fac].p) {
+                    out.value = `${map[fac].m}${parts[1]}${parts[2]}@${map[fac].d}.pdn.ac.lk`;
+                    out.style.color = '#FFD700'; return;
+                }
+            }
+            out.value = "Invalid Format"; out.style.color = '#ff4444';
+        }
+
+        // ============================================
+        // 3. MAIN LOGIC
+        // ============================================
+        let genOTP = null;
+        let userData = {};
+
+        async function runSendCode() {
+            const btn = document.getElementById('send-code-btn');
+            
+            // 1. Initialize
+            try { 
+                emailjs.init(EMAILJS_KEY); 
+            } catch(e) { 
+                showToast("Connection Error", "error"); return; 
+            }
+
+            const email = document.getElementById('auto-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const confirm = document.getElementById('confirm-pass').value;
+            const fname = document.getElementById('fname').value;
+            const lname = document.getElementById('lname').value;
+            const reg = document.getElementById('reg-no').value;
+
+            // 2. Validation
+            if(!email || email.includes('Invalid') || email.includes('Select')) { showToast("Fix Faculty/Reg No", "error"); return; }
+            if(pass !== confirm) { showToast("Passwords don't match", "error"); return; }
+            if(pass.length < 6) { showToast("Password too short", "error"); return; }
+            if(!fname || !lname) { showToast("Enter full name", "error"); return; }
+
+            // 3. CHECK DUPLICATE EMAIL (BLOCKING STEP)
+            btn.innerText = "Checking...";
+            btn.disabled = true;
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const { data: existingUser, error: checkError } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('email', email)
+                .single();
+
+            if (existingUser) {
+                showToast("Account already exists! Please Login.", "error");
+                btn.innerText = "Send Verification Code";
+                btn.disabled = false;
+                setTimeout(() => switchForm('login'), 2000); // Redirect to login
+                return;
+            }
+
+            // 4. Send Email
+            btn.innerText = "Sending Code...";
+            
+            genOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            userData = { email, pass, fname, lname, reg };
+
+            emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+                to_email: email, to_name: fname, verification_code: genOTP
+            }).then(() => {
+                showToast("Code Sent to Email!", "success");
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('otp-overlay').classList.remove('hidden');
+                btn.innerText = "Send Verification Code";
+                btn.disabled = false;
+            }).catch((err) => {
+                showToast("Email Failed. Server Busy.", "error");
+                console.error(err);
+                btn.innerText = "Send Verification Code";
+                btn.disabled = false;
+            });
+        }
+
+        async function runVerify() {
+            const input = document.getElementById('otp-input').value;
+            if(input !== genOTP) { showToast("Incorrect Code", "error"); return; }
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            const { data, error } = await supabase.auth.signUp({
+                email: userData.email, password: userData.pass,
+                options: { data: { first_name: userData.fname, last_name: userData.lname, reg_no: userData.reg } }
+            });
+
+            if(error) {
+                showToast(error.message, "error");
+            } else {
+                showToast("Account Created! Redirecting...", "success");
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+            }
+        }
+
+        async function runLogin() {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+
+            const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+            
+            if(error) showToast("Login Failed: " + error.message, "error");
+            else {
+                showToast("Login Successful!", "success");
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+            }
+        }
+        
+        async function runForgot() {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const email = document.getElementById('forgot-email').value;
+            if(!email) { showToast("Enter email first", "error"); return; }
+
+            const { error } = await supabase.auth.resetPasswordForEmail(email);
+            if(error) showToast(error.message, "error"); 
+            else showToast("Reset Link Sent!", "success");
+        }
+    </script>
+</body>
+</html>
