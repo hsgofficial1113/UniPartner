@@ -236,62 +236,83 @@
         </div>
     </div>
 
-    <script>
+   <script>
         // ==========================================
-        // 1. YOUR SUPABASE CONFIGURATION
+        // 1. CONFIGURATION (PASTE KEYS HERE)
         // ==========================================
-        const SUPABASE_URL = 'https://qfphldkagncbdayxbwkm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcGhsZGthZ25jYmRheXhid2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjEwNDUsImV4cCI6MjA4NDg5NzA0NX0.1wFaOihsBx5dMkVzHviqDEwAKd9EDnNIr1WqpPVgJLY';
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+        const SUPABASE_KEY = 'YOUR_ANON_KEY';
         
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUser = null;
 
         // ==========================================
-        // 2. STARTUP LOGIC
+        // 2. DEBUGGING & STARTUP
         // ==========================================
         document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                // If not logged in, redirect to login page
-                 window.location.href = 'index.html';
-                // alert("Please Login First!");
-            } else {
-                currentUser = user;
-                loadMyProfile();
-                loadMissedNotifications();
-                listenForNotifications();
+            console.log("Dashboard loading...");
+            
+            // Check Session
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error || !session) {
+                console.error("Login Error:", error);
+                alert("You are not logged in. Redirecting to login...");
+                window.location.href = 'index.html'; // Ensure this file exists
+                return;
             }
+
+            currentUser = session.user;
+            console.log("Logged in as:", currentUser.id);
+
+            // Load Data
+            await loadMyProfile();
+            listenForNotifications();
+            loadMissedNotifications();
         });
 
         // ==========================================
-        // 3. PROFILE LOGIC (Matches your Schema)
+        // 3. PROFILE LOGIC (With Error Alerts)
         // ==========================================
         async function loadMyProfile() {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
 
-            if (data) {
-                // Locked Fields
-                document.getElementById('p-fname').value = data.first_name || '';
-                document.getElementById('p-lname').value = data.last_name || '';
-                document.getElementById('p-regno').value = data.reg_no || ''; // Added Reg No
-                document.getElementById('p-uni').value = data.university || '';
-                document.getElementById('p-fac').value = data.faculty || '';
-                
-                // Editable Fields
-                document.getElementById('p-dob').value = data.birthdate || '';
-                document.getElementById('p-status').value = data.status || 'Single';
-                document.getElementById('p-bio').value = data.bio || '';
-                
-                // JSON Socials
-                if(data.socials) {
-                    document.getElementById('p-fb').value = data.socials.fb || '';
-                    document.getElementById('p-wa').value = data.socials.wa || '';
-                    document.getElementById('p-ig').value = data.socials.ig || '';
+                if (error) {
+                    console.error("Profile Fetch Error:", error);
+                    // If the error is P GRST116, it means the row doesn't exist
+                    if(error.code === 'PGRST116') {
+                        alert("Error: Your user profile does not exist in the database table 'profiles'. Did you insert a row when you signed up?");
+                    } else {
+                        alert("Error fetching profile: " + error.message);
+                    }
+                    return;
                 }
+
+                if (data) {
+                    // Populate Fields safely
+                    if(document.getElementById('p-fname')) document.getElementById('p-fname').value = data.first_name || '';
+                    if(document.getElementById('p-lname')) document.getElementById('p-lname').value = data.last_name || '';
+                    if(document.getElementById('p-regno')) document.getElementById('p-regno').value = data.reg_no || '';
+                    if(document.getElementById('p-uni')) document.getElementById('p-uni').value = data.university || '';
+                    if(document.getElementById('p-fac')) document.getElementById('p-fac').value = data.faculty || '';
+                    if(document.getElementById('p-dob')) document.getElementById('p-dob').value = data.birthdate || '';
+                    if(document.getElementById('p-status')) document.getElementById('p-status').value = data.status || 'Single';
+                    if(document.getElementById('p-bio')) document.getElementById('p-bio').value = data.bio || '';
+                    
+                    // Socials
+                    if (data.socials) {
+                        document.getElementById('p-fb').value = data.socials.fb || '';
+                        document.getElementById('p-wa').value = data.socials.wa || '';
+                        document.getElementById('p-ig').value = data.socials.ig || '';
+                    }
+                }
+            } catch (err) {
+                console.error("Unexpected Error:", err);
             }
         }
 
@@ -312,56 +333,63 @@
                 .update(updates)
                 .eq('id', currentUser.id);
 
-            if (error) alert('Error: ' + error.message);
-            else alert('Profile updated successfully! ✅');
+            if (error) alert('Error updating: ' + error.message);
+            else alert('Profile updated successfully!');
         }
 
         // ==========================================
-        // 4. SEARCH LOGIC
+        // 4. SEARCH LOGIC (Simplified)
         // ==========================================
         async function performSearch() {
             const query = document.getElementById('search-input').value;
             const grid = document.getElementById('results-grid');
             
-            if(!query) return;
+            if (!query) {
+                alert("Please enter a name to search.");
+                return;
+            }
 
             grid.innerHTML = '<p style="color:#777; grid-column:1/-1; text-align:center;">Searching...</p>';
 
-            // Search by First OR Last Name
+            // Simpler Search Query to avoid syntax errors
             const { data: users, error } = await supabase
                 .from('profiles')
                 .select('*')
-                .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
-                .neq('id', currentUser.id) // Don't show myself
-                .limit(20);
+                .ilike('first_name', `%${query}%`) // Search only First Name first to test
+                .neq('id', currentUser.id);
 
-            if (error) { console.error(error); return; }
+            if (error) {
+                console.error("Search Error:", error);
+                alert("Search failed: " + error.message);
+                grid.innerHTML = '<p style="color:red;">Search failed. Check console.</p>';
+                return;
+            }
 
             grid.innerHTML = '';
             if (!users || users.length === 0) {
-                grid.innerHTML = '<p style="color:#777; grid-column:1/-1; text-align:center;">No students found.</p>';
+                grid.innerHTML = '<p style="color:#777; grid-column:1/-1; text-align:center;">No students found with that First Name.</p>';
                 return;
             }
 
             users.forEach(u => {
                 // Calculate Age
                 let age = "--";
-                if(u.birthdate) {
+                if (u.birthdate) {
                     const dob = new Date(u.birthdate);
                     const diff = Date.now() - dob.getTime();
                     age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
                 }
 
-                // Encode JSON safely
+                // Safe Data Handling
                 const safeSocials = u.socials ? JSON.stringify(u.socials).replace(/"/g, '&quot;') : '{}';
                 const safeBio = u.bio ? u.bio.replace(/'/g, "\\'") : '';
-                
-                // Card HTML
+                const fullName = (u.first_name || 'Unknown') + " " + (u.last_name || '');
+
                 const card = `
                 <div class="user-card">
-                    <h3 style="color:white;">${u.first_name} ${u.last_name}</h3>
+                    <h3 style="color:white;">${fullName}</h3>
                     <p style="color:var(--neon-blue); font-size:0.8rem; margin-bottom:10px;">${u.faculty || 'Unknown Faculty'}</p>
-                    <button onclick="openModal('${u.id}', '${u.first_name} ${u.last_name}', '${u.faculty}', '${u.university}', '${age}', '${u.status}', '${safeBio}', ${safeSocials})" 
+                    <button onclick="openModal('${u.id}', '${fullName}', '${u.faculty}', '${u.university}', '${age}', '${u.status}', '${safeBio}', ${safeSocials})" 
                     style="background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 8px; border-radius: 5px; cursor: pointer;">
                         View Profile
                     </button>
@@ -373,7 +401,6 @@
         // ==========================================
         // 5. NOTIFICATION LOGIC
         // ==========================================
-        
         function listenForNotifications() {
             supabase
                 .channel('public:notifications')
@@ -383,7 +410,6 @@
                     table: 'notifications', 
                     filter: `receiver_id=eq.${currentUser.id}` 
                 }, (payload) => {
-                    // Alert
                     alert("💖 You received a new Crush Request!");
                     loadMissedNotifications();
                 })
@@ -391,20 +417,21 @@
         }
 
         async function loadMissedNotifications() {
-            // Join with sender details to get Name
-            const { data: notifs } = await supabase
+            // Check if tables exist by trying a simple select
+            const { data: notifs, error } = await supabase
                 .from('notifications')
-                .select(`
-                    *,
-                    sender:sender_id (first_name, last_name)
-                `)
+                .select('*') // Simplified select to avoid join errors initially
                 .eq('receiver_id', currentUser.id)
                 .order('created_at', { ascending: false });
+
+            if(error) {
+                console.log("Notification Fetch Error (Ignore if table empty):", error);
+                return;
+            }
 
             const badge = document.getElementById('notif-count');
             const list = document.getElementById('notif-list');
             
-            // Check unread
             const unreadCount = notifs ? notifs.filter(n => !n.is_read).length : 0;
             
             if (unreadCount > 0) {
@@ -417,11 +444,10 @@
             if(notifs && notifs.length > 0) {
                 list.innerHTML = '';
                 notifs.forEach(n => {
-                    const senderName = n.is_anonymous ? "A Secret Admirer" : (n.sender ? `${n.sender.first_name} ${n.sender.last_name}` : "Unknown");
                     const item = `
                     <div class="notif-item">
-                        <span>${senderName}</span> sent you a crush request!
-                        <div style="font-size:0.7rem; color:#777; margin-top:5px;">${new Date(n.created_at).toLocaleTimeString()}</div>
+                        <span>New Crush Request!</span>
+                        <div style="font-size:0.7rem; color:#777; margin-top:5px;">Check messages</div>
                     </div>`;
                     list.innerHTML += item;
                 });
@@ -452,12 +478,11 @@
         }
 
         // ==========================================
-        // 6. UI HELPERS
+        // 6. UI HELPERS (Unchanged)
         // ==========================================
         function switchTab(sectionId, element) {
             document.getElementById('profile-section').style.display = 'none';
             document.getElementById('search-section').style.display = 'none';
-            
             document.querySelectorAll('.nav-item').forEach(item => {
                 if(!item.getAttribute('href')) item.classList.remove('active');
             });
@@ -474,17 +499,16 @@
 
         function toggleNotifications() {
             document.getElementById('notif-dropdown').classList.toggle('show');
-            // Optional: Mark as read here if you want
         }
 
         function openModal(id, name, fac, uni, age, status, bio, socials) {
             document.getElementById('m-userid').value = id;
             document.getElementById('m-name').innerText = name;
-            document.getElementById('m-faculty').innerText = fac || 'Unknown Faculty';
-            document.getElementById('m-uni').innerText = uni || 'Unknown Uni';
-            document.getElementById('m-age').innerText = age + " Years";
+            document.getElementById('m-faculty').innerText = fac || 'Unknown';
+            document.getElementById('m-uni').innerText = uni || 'Unknown';
+            document.getElementById('m-age').innerText = age;
             document.getElementById('m-status').innerText = status || 'Single';
-            document.getElementById('m-bio').innerText = bio || 'No bio yet...';
+            document.getElementById('m-bio').innerText = bio || 'No bio...';
             
             document.getElementById('m-fb').href = socials.fb || '#';
             document.getElementById('m-wa').href = socials.wa ? `https://wa.me/${socials.wa}` : '#';
@@ -503,4 +527,5 @@
         }
     </script>
 </body>
+
 </html>
