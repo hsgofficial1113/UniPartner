@@ -14,8 +14,8 @@
     <style>
         /* --- CORE THEME --- */
         :root {
-            --accent: #ff0055;
-            --accent-glow: rgba(255, 0, 85, 0.5);
+            --accent: #bc13fe;
+            --accent-glow: rgba(188, 19, 254, 0.5);
             --success: #00ff88;
             --gold: #FFD700;
             --glass: rgba(18, 18, 18, 0.95);
@@ -25,10 +25,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: radial-gradient(circle at 50% 50%, #1a000d 0%, #000000 100%);
+            background: radial-gradient(circle at 50% 50%, #0d001a 0%, #000000 100%);
             font-family: 'Inter', sans-serif;
             color: white;
-            min-height: 100dvh; /* Handles mobile keyboard better */
+            min-height: 100dvh;
             width: 100vw;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden;
@@ -45,12 +45,11 @@
             box-shadow: 0 0 60px rgba(0,0,0,0.6);
             overflow: hidden;
             z-index: 10;
-            transition: all 0.4s ease;
         }
 
         .info-panel {
             width: 40%;
-            background: linear-gradient(135deg, rgba(255,0,85,0.1), #050505);
+            background: linear-gradient(135deg, rgba(188, 19, 254, 0.1), #050505);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             padding: 40px; text-align: center; border-right: 1px solid var(--border);
         }
@@ -72,7 +71,6 @@
         .form-panel::-webkit-scrollbar { width: 4px; }
         .form-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-        /* --- INPUTS & EYE ICON --- */
         .form-box { display: flex; flex-direction: column; gap: 20px; width: 100%; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -81,7 +79,7 @@
         h3 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 5px; }
         .subtitle { font-size: 0.9rem; opacity: 0.5; margin-bottom: 20px; }
 
-        .input-group { width: 100%; position: relative; } /* Relative for absolute icon */
+        .input-group { width: 100%; position: relative; }
         .row { display: flex; gap: 15px; }
         
         label { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: block; }
@@ -96,14 +94,9 @@
         input:focus { border-color: var(--accent); background: rgba(255,255,255,0.05); }
         select option { background: #000; color: #fff; }
         
-        /* PASSWORD EYE ICON */
         .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 42px; /* Aligns with input text */
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
-            z-index: 10;
+            position: absolute; right: 15px; top: 42px;
+            color: rgba(255,255,255,0.5); cursor: pointer; z-index: 10;
         }
         .password-toggle:hover { color: var(--accent); }
 
@@ -114,7 +107,7 @@
             background: var(--accent); color: white; border: none; border-radius: 50px; 
             font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; margin-top: 10px;
-            box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3);
+            box-shadow: 0 5px 20px rgba(188, 19, 254, 0.3);
         }
         .main-btn:disabled { background: #333; cursor: not-allowed; box-shadow: none; }
 
@@ -122,7 +115,6 @@
         .toggle-text span { color: var(--accent); text-decoration: underline; font-weight: bold; }
         .forgot-link { text-align: right; display: block; font-size: 0.8rem; color: #888; margin-top: -10px; cursor: pointer; }
 
-        /* --- TOAST NOTIFICATIONS --- */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast {
             background: rgba(20, 20, 20, 0.95); border-left: 4px solid var(--accent);
@@ -132,24 +124,20 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         .toast.success { border-left-color: var(--success); }
-        .toast i { font-size: 1.2rem; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
 
-        /* --- OTP MODAL --- */
         #otp-overlay {
             position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
         }
         .otp-box input { font-size: 2.5rem; letter-spacing: 15px; text-align: center; width: 280px; border-color: var(--accent); margin-bottom: 25px; background: transparent; }
 
-        /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
             .auth-container { flex-direction: column; height: 100dvh; border-radius: 0; border: none; }
             .info-panel { height: 100px; width: 100%; flex-shrink: 0; flex-direction: row; justify-content: space-between; padding: 20px; border-bottom: 1px solid var(--border); border-right: none; }
             .info-panel h2 { font-size: 1.4rem; margin: 0; }
             .back-btn { margin: 0; padding: 8px 15px; font-size: 0.7rem; }
-            /* Extra padding at bottom for scrolling past keyboard */
             .form-panel { width: 100%; height: 100%; padding: 25px; padding-bottom: 150px; }
             .row { flex-direction: column; gap: 15px; }
             h3 { font-size: 2rem; }
@@ -158,7 +146,6 @@
 </head>
 <body>
 
-    <div class="glow-spot"></div>
     <div id="toast-container"></div>
 
     <div class="auth-container">
@@ -211,22 +198,22 @@
 
                 <div class="input-group">
                     <label>University</label>
-                    <select id="uni-select"><option value="pdn">University of Peradeniya</option></select>
+                    <select id="uni-select"><option value="University of Peradeniya">University of Peradeniya</option></select>
                 </div>
 
                 <div class="input-group">
                     <label>Faculty</label>
                     <select id="faculty-select" onchange="runAutoEmail()">
                         <option value="">Select Faculty...</option>
-                        <option value="eng">Engineering (E/..)</option>
-                        <option value="med">Medicine (M/..)</option>
-                        <option value="sci">Science (S/..)</option>
-                        <option value="arts">Arts (A/..)</option>
-                        <option value="agri">Agriculture (AG/..)</option>
-                        <option value="dent">Dental (D/..)</option>
-                        <option value="vet">Vet Medicine (V/..)</option>
-                        <option value="mgt">Management (MG/..)</option>
-                        <option value="ahs">Allied Health (AH/..)</option>
+                        <option value="Engineering">Engineering (E/..)</option>
+                        <option value="Medicine">Medicine (M/..)</option>
+                        <option value="Science">Science (S/..)</option>
+                        <option value="Arts">Arts (A/..)</option>
+                        <option value="Agriculture">Agriculture (AG/..)</option>
+                        <option value="Dental">Dental (D/..)</option>
+                        <option value="Vet Medicine">Vet Medicine (V/..)</option>
+                        <option value="Management">Management (MG/..)</option>
+                        <option value="Allied Health">Allied Health (AH/..)</option>
                     </select>
                 </div>
 
@@ -277,18 +264,14 @@
     </div>
 
     <script>
-        // ============================================
-        // 1. YOUR API KEYS
-        // ============================================
+        // CONFIG
         const SUPABASE_URL = 'https://qfphldkagncbdayxbwkm.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcGhsZGthZ25jYmRheXhid2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjEwNDUsImV4cCI6MjA4NDg5NzA0NX0.1wFaOihsBx5dMkVzHviqDEwAKd9EDnNIr1WqpPVgJLY';
         const EMAILJS_KEY = 'Cl-cXZP3VC90OrqLE';
         const EMAILJS_SERVICE = 'service_fqey4o9';
         const EMAILJS_TEMPLATE = 'template_xojinfj';
 
-        // ============================================
-        // 2. HELPER FUNCTIONS (UI)
-        // ============================================
+        // HELPERS
         function showToast(msg, type='error') {
             const box = document.getElementById('toast-container');
             const div = document.createElement('div');
@@ -327,15 +310,15 @@
             const out = document.getElementById('auto-email');
             
             const map = {
-                "eng": { p: "E", d: "eng", m: "e" },
-                "med": { p: "M", d: "med", m: "m" },
-                "sci": { p: "S", d: "sci", m: "s" },
-                "arts":{ p: "A", d: "arts",m: "a" },
-                "agri":{ p: "AG", d: "agri",m: "ag" },
-                "dent":{ p: "D", d: "dent",m: "d" },
-                "vet": { p: "V", d: "vet", m: "v" },
-                "mgt": { p: "MG", d: "mgt", m: "mg" },
-                "ahs": { p: "AH", d: "ahs", m: "ah" }
+                "Engineering": { p: "E", d: "eng", m: "e" },
+                "Medicine": { p: "M", d: "med", m: "m" },
+                "Science": { p: "S", d: "sci", m: "s" },
+                "Arts":{ p: "A", d: "arts",m: "a" },
+                "Agriculture":{ p: "AG", d: "agri",m: "ag" },
+                "Dental":{ p: "D", d: "dent",m: "d" },
+                "Vet Medicine": { p: "V", d: "vet", m: "v" },
+                "Management": { p: "MG", d: "mgt", m: "mg" },
+                "Allied Health": { p: "AH", d: "ahs", m: "ah" }
             };
 
             if(fac && map[fac]) {
@@ -348,21 +331,15 @@
             out.value = "Invalid Format"; out.style.color = '#ff4444';
         }
 
-        // ============================================
-        // 3. MAIN LOGIC
-        // ============================================
+        // MAIN LOGIC
         let genOTP = null;
         let userData = {};
 
         async function runSendCode() {
             const btn = document.getElementById('send-code-btn');
             
-            // 1. Initialize
-            try { 
-                emailjs.init(EMAILJS_KEY); 
-            } catch(e) { 
-                showToast("Connection Error", "error"); return; 
-            }
+            try { emailjs.init(EMAILJS_KEY); } 
+            catch(e) { showToast("Connection Error", "error"); return; }
 
             const email = document.getElementById('auto-email').value;
             const pass = document.getElementById('reg-pass').value;
@@ -370,49 +347,49 @@
             const fname = document.getElementById('fname').value;
             const lname = document.getElementById('lname').value;
             const reg = document.getElementById('reg-no').value;
+            const faculty = document.getElementById('faculty-select').value;
+            const gender = document.getElementById('gender').value;
+            const uni = document.getElementById('uni-select').value;
+            const dob = document.getElementById('dob').value;
 
-            // 2. Validation
             if(!email || email.includes('Invalid') || email.includes('Select')) { showToast("Fix Faculty/Reg No", "error"); return; }
             if(pass !== confirm) { showToast("Passwords don't match", "error"); return; }
             if(pass.length < 6) { showToast("Password too short", "error"); return; }
             if(!fname || !lname) { showToast("Enter full name", "error"); return; }
+            if(!faculty) { showToast("Select Faculty", "error"); return; }
 
-            // 3. CHECK DUPLICATE EMAIL (BLOCKING STEP)
             btn.innerText = "Checking...";
             btn.disabled = true;
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const { data: existingUser, error: checkError } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('email', email)
-                .single();
+            // 1. CHECK IF PROFILE EXISTS
+            const { data: existingProfile } = await supabase.from('profiles').select('email').eq('email', email).single();
 
-            if (existingUser) {
+            if (existingProfile) {
                 showToast("Account already exists! Please Login.", "error");
                 btn.innerText = "Send Verification Code";
                 btn.disabled = false;
-                setTimeout(() => switchForm('login'), 2000); // Redirect to login
+                setTimeout(() => switchForm('login'), 2000);
                 return;
             }
 
-            // 4. Send Email
+            // If we get here, profile doesn't exist. Auth user MIGHT exist (if deleted).
+            // That's fine, runVerify will handle it.
+
             btn.innerText = "Sending Code...";
-            
             genOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            userData = { email, pass, fname, lname, reg };
+            userData = { email, pass, fname, lname, reg, faculty, gender, uni, dob };
 
             emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
                 to_email: email, to_name: fname, verification_code: genOTP
             }).then(() => {
-                showToast("Code Sent to Email!", "success");
+                showToast("Code Sent!", "success");
                 document.getElementById('signup-form').classList.add('hidden');
                 document.getElementById('otp-overlay').classList.remove('hidden');
                 btn.innerText = "Send Verification Code";
                 btn.disabled = false;
             }).catch((err) => {
-                showToast("Email Failed. Server Busy.", "error");
-                console.error(err);
+                showToast("Email Failed.", "error");
                 btn.innerText = "Send Verification Code";
                 btn.disabled = false;
             });
@@ -424,28 +401,78 @@
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+            // 1. TRY STANDARD SIGN UP
             const { data, error } = await supabase.auth.signUp({
                 email: userData.email, password: userData.pass,
-                options: { data: { first_name: userData.fname, last_name: userData.lname, reg_no: userData.reg } }
+                options: { 
+                    data: { 
+                        first_name: userData.fname, last_name: userData.lname, 
+                        reg_no: userData.reg, faculty: userData.faculty,
+                        gender: userData.gender, university: userData.uni,
+                        birthdate: userData.dob || null
+                    } 
+                }
             });
+
+            // 2. IF USER ALREADY EXISTS (Dangling Auth) -> REVIVE THEM
+            if (error && error.message.includes("already registered")) {
+                showToast("Reactivating Account...", "success");
+                
+                // A. Login to confirm ownership
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: userData.email, password: userData.pass
+                });
+
+                if (loginError) {
+                    showToast("Account exists but wrong password.", "error");
+                    return;
+                }
+
+                // B. Re-Insert Profile Row
+                const { error: insertError } = await supabase.from('profiles').insert({
+                    id: loginData.user.id, // Use existing ID
+                    email: userData.email,
+                    first_name: userData.fname, last_name: userData.lname,
+                    reg_no: userData.reg, faculty: userData.faculty,
+                    gender: userData.gender, university: userData.uni,
+                    birthdate: userData.dob || null
+                });
+
+                if(insertError) showToast("Error restoring profile.", "error");
+                else {
+                    showToast("Account Reactivated! Redirecting...", "success");
+                    setTimeout(() => window.location.href = "dashboard.html", 1500);
+                }
+                return;
+            }
 
             if(error) {
                 showToast(error.message, "error");
             } else {
-                showToast("Account Created! Redirecting...", "success");
+                showToast("Success! Redirecting...", "success");
                 setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
             }
         }
 
+        // LOGIN WITH PROFILE CHECK
         async function runLogin() {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
 
-            const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+            // 1. Check Credentials
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
             
-            if(error) showToast("Login Failed: " + error.message, "error");
-            else {
+            if(error) { showToast("Login Failed: " + error.message, "error"); return; }
+
+            // 2. Check if Profile is Deleted
+            const { data: profile } = await supabase.from('profiles').select('id').eq('id', data.user.id).single();
+
+            if (!profile) {
+                // Profile deleted? Log them out immediately.
+                await supabase.auth.signOut();
+                showToast("Account deleted. Please Register again.", "error");
+            } else {
                 showToast("Login Successful!", "success");
                 setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
             }
