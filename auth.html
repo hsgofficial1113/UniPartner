@@ -132,17 +132,9 @@
             position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
         }
-        
-        /* WIDER INPUT FOR 8 DIGIT CODES */
         .otp-box input { 
-            font-size: 2.2rem; 
-            letter-spacing: 12px; /* Tighter spacing for 8 digits */
-            text-align: center; 
-            width: 340px; /* Wider box */
-            max-width: 90%;
-            border-color: var(--accent); 
-            margin-bottom: 25px; 
-            background: transparent; 
+            font-size: 2.2rem; letter-spacing: 12px; text-align: center; width: 340px; max-width: 90%;
+            border-color: var(--accent); margin-bottom: 25px; background: transparent; 
         }
 
         @media (max-width: 768px) {
@@ -250,7 +242,6 @@
 
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // GLOBAL VARS
         let genOTP = null;      
         let userData = {};      
         let resetEmail = "";    
@@ -301,7 +292,7 @@
         }
 
         // ==========================
-        //  1. FORGOT PASSWORD (SMART OTP)
+        //  1. FORGOT PASSWORD
         // ==========================
         async function runForgot() {
             const email = document.getElementById('forgot-email').value.trim().toLowerCase();
@@ -334,7 +325,7 @@
 
             showToast("Verifying...", "success");
 
-            // SMART LOOP: Try all possible token types
+            // Smart Loop for Supabase Code Types
             const tokenTypes = ['recovery', 'signup', 'magiclink', 'email'];
             let verificationSuccess = false;
 
@@ -344,10 +335,9 @@
                     token: token,
                     type: type
                 });
-
                 if (!error && data.session) {
                     verificationSuccess = true;
-                    break; // Success! Stop loop.
+                    break; 
                 }
             }
 
@@ -374,7 +364,7 @@
         }
 
         // ==========================
-        //  2. SIGN UP (EMAILJS + MANUAL DB INSERT)
+        //  2. SIGN UP (UPSERT FIX)
         // ==========================
         async function runSendCode() {
             const btn = document.getElementById('send-code-btn');
@@ -443,34 +433,48 @@
                 }
             });
 
-            // 2. Reactivation Logic
+            // 2. Reactivation
             if (error && error.message.includes("already registered")) {
                 showToast("Reactivating...", "success");
                 const { error: loginErr } = await client.auth.signInWithPassword({ email: userData.email, password: userData.pass });
                 if(loginErr) { showToast("Wrong password for existing acct", "error"); return; }
                 
                 const { data: user } = await client.auth.getUser();
-                await insertProfile(user.user.id);
+                await upsertProfile(user.user.id); // Fixed function call
                 return;
             }
 
             if (error) { showToast(error.message, "error"); return; }
 
-            // 3. Manual Insert (Fix for missing data)
+            // 3. Insert Profile
             if (data.user) {
-                await insertProfile(data.user.id);
+                await upsertProfile(data.user.id); // Fixed function call
             }
         }
 
-        async function insertProfile(uid) {
-            const { error } = await client.from('profiles').insert({
+        async function upsertProfile(uid) {
+            // Re-grab data from DOM just in case userData is lost
+            const fname = document.getElementById('fname').value || userData.fname;
+            const lname = document.getElementById('lname').value || userData.lname;
+            const reg = document.getElementById('reg-no').value || userData.reg;
+            const faculty = document.getElementById('faculty-select').value || userData.faculty;
+            const gender = document.getElementById('gender').value || userData.gender;
+            const uni = document.getElementById('uni-select').value || userData.uni;
+            const dob = document.getElementById('dob').value || userData.dob;
+            const email = document.getElementById('auto-email').value || userData.email;
+
+            // USE UPSERT TO FIX RACE CONDITIONS
+            const { error } = await client.from('profiles').upsert({
                 id: uid,
-                email: userData.email,
-                first_name: userData.fname, last_name: userData.lname,
-                reg_no: userData.reg, faculty: userData.faculty,
-                gender: userData.gender, university: userData.uni,
-                birthdate: userData.dob || null
-            });
+                email: email,
+                first_name: fname,
+                last_name: lname,
+                reg_no: reg,
+                faculty: faculty,
+                gender: gender,
+                university: uni,
+                birthdate: dob || null
+            }, { onConflict: 'id' });
 
             if (error) showToast("Profile Error: " + error.message, "error");
             else {
@@ -480,7 +484,7 @@
         }
 
         // ==========================
-        //  SHARED OTP HANDLER
+        //  SHARED HANDLER
         // ==========================
         function decideVerify() {
             if (isResetMode) verifyResetOtp();
