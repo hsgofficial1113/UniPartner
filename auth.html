@@ -127,11 +127,23 @@
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
 
-        #otp-overlay {
+        /* OVERLAYS */
+        .overlay-layer {
             position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
         }
-        .otp-box input { font-size: 2.5rem; letter-spacing: 15px; text-align: center; width: 280px; border-color: var(--accent); margin-bottom: 25px; background: transparent; }
+        
+        /* WIDER INPUT FOR 8 DIGIT CODES */
+        .otp-box input { 
+            font-size: 2.2rem; 
+            letter-spacing: 12px; /* Tighter spacing for 8 digits */
+            text-align: center; 
+            width: 340px; /* Wider box */
+            max-width: 90%;
+            border-color: var(--accent); 
+            margin-bottom: 25px; 
+            background: transparent; 
+        }
 
         @media (max-width: 768px) {
             .auth-container { flex-direction: column; height: 100dvh; border-radius: 0; border: none; }
@@ -161,48 +173,34 @@
             
             <div id="login-form" class="form-box">
                 <div><h3>Login</h3><span class="subtitle">Access your portal</span></div>
-                
-                <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" id="login-email" placeholder="e.g. e20123@eng.pdn.ac.lk">
-                </div>
-                
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="password" id="login-pass" placeholder="••••••••">
-                    <i class="fas fa-eye password-toggle" onclick="togglePass('login-pass', this)"></i>
-                </div>
-                
+                <div class="input-group"><label>Email</label><input type="email" id="login-email" placeholder="e.g. e20123@eng.pdn.ac.lk"></div>
+                <div class="input-group"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"><i class="fas fa-eye password-toggle" onclick="togglePass('login-pass', this)"></i></div>
                 <span class="forgot-link" onclick="switchForm('forgot')">Forgot Password?</span>
                 <button class="main-btn" onclick="runLogin()">Login to Dashboard</button>
                 <div class="toggle-text" onclick="switchForm('signup')">New Batch? <span>Create Account</span></div>
             </div>
 
             <div id="forgot-form" class="form-box hidden">
-                <div><h3>Recovery</h3><span class="subtitle">We'll send a link to your email</span></div>
-                <div class="input-group">
-                    <label>University Email</label>
-                    <input type="email" id="forgot-email">
-                </div>
-                <button class="main-btn" onclick="runForgot()">Send Reset Link</button>
+                <div><h3>Recovery</h3><span class="subtitle">We'll send a code to your email</span></div>
+                <div class="input-group"><label>University Email</label><input type="email" id="forgot-email"></div>
+                <button class="main-btn" id="btn-forgot" onclick="runForgot()">Send Reset Code</button>
                 <div class="toggle-text" onclick="switchForm('login')"><span>Back to Login</span></div>
+            </div>
+
+            <div id="reset-final-form" class="form-box hidden">
+                <div><h3>New Password</h3><span class="subtitle">Secure your account</span></div>
+                <div class="input-group"><label>New Password</label><input type="password" id="new-password"></div>
+                <button class="main-btn" onclick="runUpdatePassword()">Update & Login</button>
             </div>
 
             <div id="signup-form" class="form-box hidden">
                 <div><h3>Register</h3><span class="subtitle">Exclusive for Students</span></div>
-                
                 <div class="row">
                     <div class="input-group"><label>First Name</label><input type="text" id="fname"></div>
                     <div class="input-group"><label>Last Name</label><input type="text" id="lname"></div>
                 </div>
-
-                <div class="input-group">
-                    <label>University</label>
-                    <select id="uni-select"><option value="University of Peradeniya">University of Peradeniya</option></select>
-                </div>
-
-                <div class="input-group">
-                    <label>Faculty</label>
+                <div class="input-group"><label>University</label><select id="uni-select"><option value="University of Peradeniya">University of Peradeniya</option></select></div>
+                <div class="input-group"><label>Faculty</label>
                     <select id="faculty-select" onchange="runAutoEmail()">
                         <option value="">Select Faculty...</option>
                         <option value="Engineering">Engineering (E/..)</option>
@@ -216,47 +214,26 @@
                         <option value="Allied Health">Allied Health (AH/..)</option>
                     </select>
                 </div>
-
                 <div class="row">
-                    <div class="input-group">
-                        <label>Reg No (Prefix/YY/XXX)</label>
-                        <input type="text" id="reg-no" placeholder="e.g. E/20/123" oninput="runAutoEmail()">
-                    </div>
-                    <div class="input-group">
-                        <label>Gender</label>
-                        <select id="gender"><option value="Male">Male</option><option value="Female">Female</option></select>
-                    </div>
+                    <div class="input-group"><label>Reg No (Prefix/YY/XXX)</label><input type="text" id="reg-no" placeholder="e.g. E/20/123" oninput="runAutoEmail()"></div>
+                    <div class="input-group"><label>Gender</label><select id="gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
                 </div>
-
-                <div class="input-group">
-                    <label>Official Email (Auto)</label>
-                    <input type="text" id="auto-email" readonly placeholder="Fill details above">
-                </div>
-
+                <div class="input-group"><label>Official Email (Auto)</label><input type="text" id="auto-email" readonly placeholder="Fill details above"></div>
                 <div class="input-group"><label>Date of Birth</label><input type="date" id="dob"></div>
-
                 <div class="row">
-                    <div class="input-group">
-                        <label>Password</label>
-                        <input type="password" id="reg-pass">
-                        <i class="fas fa-eye password-toggle" onclick="togglePass('reg-pass', this)"></i>
-                    </div>
-                    <div class="input-group">
-                        <label>Confirm</label>
-                        <input type="password" id="confirm-pass">
-                    </div>
+                    <div class="input-group"><label>Password</label><input type="password" id="reg-pass"><i class="fas fa-eye password-toggle" onclick="togglePass('reg-pass', this)"></i></div>
+                    <div class="input-group"><label>Confirm</label><input type="password" id="confirm-pass"></div>
                 </div>
-
                 <button class="main-btn" id="send-code-btn" onclick="runSendCode()">Send Verification Code</button>
                 <div class="toggle-text" onclick="switchForm('login')">Has Account? <span>Login Here</span></div>
             </div>
 
-            <div id="otp-overlay" class="hidden">
+            <div id="otp-overlay" class="overlay-layer hidden">
                 <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
-                <h3>Verify</h3>
-                <p>Enter the 6-digit code sent to your email.</p>
-                <div class="otp-box"><input type="text" id="otp-input" placeholder="000000" maxlength="6"></div>
-                <button class="main-btn" onclick="runVerify()">Verify & Create</button>
+                <h3 id="otp-title">Verify</h3>
+                <p id="otp-desc">Enter the code sent to your email.</p>
+                <div class="otp-box"><input type="text" id="otp-input" placeholder="000000" maxlength="8"></div>
+                <button class="main-btn" id="btn-verify" onclick="decideVerify()">Verify Code</button>
                 <div class="toggle-text" onclick="closeOtp()"><span>Cancel</span></div>
             </div>
 
@@ -271,6 +248,14 @@
         const EMAILJS_SERVICE = 'service_fqey4o9';
         const EMAILJS_TEMPLATE = 'template_xojinfj';
 
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // GLOBAL VARS
+        let genOTP = null;      
+        let userData = {};      
+        let resetEmail = "";    
+        let isResetMode = false;
+
         // HELPERS
         function showToast(msg, type='error') {
             const box = document.getElementById('toast-container');
@@ -282,45 +267,29 @@
         }
 
         function switchForm(name) {
-            document.querySelectorAll('.form-box, #otp-overlay').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.form-box, .overlay-layer').forEach(el => el.classList.add('hidden'));
             document.getElementById(name + '-form').classList.remove('hidden');
         }
 
         function closeOtp() {
             document.getElementById('otp-overlay').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
+            if (isResetMode) switchForm('forgot');
+            else switchForm('signup');
         }
 
         function togglePass(id, icon) {
             const input = document.getElementById(id);
-            if(input.type === "password") {
-                input.type = "text";
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
+            if(input.type === "password") { input.type = "text"; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } 
+            else { input.type = "password"; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
         }
 
         function runAutoEmail() {
             const fac = document.getElementById('faculty-select').value;
             const reg = document.getElementById('reg-no').value.toUpperCase();
             const out = document.getElementById('auto-email');
-            
             const map = {
-                "Engineering": { p: "E", d: "eng", m: "e" },
-                "Medicine": { p: "M", d: "med", m: "m" },
-                "Science": { p: "S", d: "sci", m: "s" },
-                "Arts":{ p: "A", d: "arts",m: "a" },
-                "Agriculture":{ p: "AG", d: "agri",m: "ag" },
-                "Dental":{ p: "D", d: "dent",m: "d" },
-                "Vet Medicine": { p: "V", d: "vet", m: "v" },
-                "Management": { p: "MG", d: "mgt", m: "mg" },
-                "Allied Health": { p: "AH", d: "ahs", m: "ah" }
+                "Engineering": { p: "E", d: "eng", m: "e" }, "Medicine": { p: "M", d: "med", m: "m" }, "Science": { p: "S", d: "sci", m: "s" }, "Arts":{ p: "A", d: "arts",m: "a" }, "Agriculture":{ p: "AG", d: "agri",m: "ag" }, "Dental":{ p: "D", d: "dent",m: "d" }, "Vet Medicine": { p: "V", d: "vet", m: "v" }, "Management": { p: "MG", d: "mgt", m: "mg" }, "Allied Health": { p: "AH", d: "ahs", m: "ah" }
             };
-
             if(fac && map[fac]) {
                 const parts = reg.split('/');
                 if(parts.length === 3 && parts[0] === map[fac].p) {
@@ -331,17 +300,87 @@
             out.value = "Invalid Format"; out.style.color = '#ff4444';
         }
 
-        // MAIN LOGIC
-        let genOTP = null;
-        let userData = {};
+        // ==========================
+        //  1. FORGOT PASSWORD (SMART OTP)
+        // ==========================
+        async function runForgot() {
+            const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+            if(!email) { showToast("Enter email first", "error"); return; }
 
+            const btn = document.getElementById('btn-forgot');
+            btn.innerText = "Sending Code..."; btn.disabled = true;
+
+            const { error } = await client.auth.signInWithOtp({ email: email });
+
+            btn.innerText = "Send Reset Code"; btn.disabled = false;
+
+            if(error) {
+                showToast(error.message, "error");
+            } else {
+                showToast("Code Sent! Check Email.", "success");
+                resetEmail = email;
+                isResetMode = true;
+                document.getElementById('otp-title').innerText = "Reset Password";
+                document.getElementById('otp-desc').innerText = "Enter the code from Supabase to reset.";
+                document.getElementById('otp-input').value = "";
+                document.getElementById('otp-overlay').classList.remove('hidden');
+                document.getElementById('forgot-form').classList.add('hidden');
+            }
+        }
+
+        async function verifyResetOtp() {
+            const token = document.getElementById('otp-input').value.trim();
+            if(token.length < 6) { showToast("Invalid Code length", "error"); return; }
+
+            showToast("Verifying...", "success");
+
+            // SMART LOOP: Try all possible token types
+            const tokenTypes = ['recovery', 'signup', 'magiclink', 'email'];
+            let verificationSuccess = false;
+
+            for (const type of tokenTypes) {
+                const { data, error } = await client.auth.verifyOtp({
+                    email: resetEmail,
+                    token: token,
+                    type: type
+                });
+
+                if (!error && data.session) {
+                    verificationSuccess = true;
+                    break; // Success! Stop loop.
+                }
+            }
+
+            if(!verificationSuccess) {
+                showToast("Incorrect code or expired.", "error");
+            } else {
+                showToast("Verified! Set new password.", "success");
+                document.getElementById('otp-overlay').classList.add('hidden');
+                document.getElementById('reset-final-form').classList.remove('hidden');
+            }
+        }
+
+        async function runUpdatePassword() {
+            const newPass = document.getElementById('new-password').value;
+            if(newPass.length < 6) { showToast("Too short (min 6 chars)", "error"); return; }
+
+            const { error } = await client.auth.updateUser({ password: newPass });
+
+            if(error) showToast(error.message, "error");
+            else {
+                showToast("Password Saved! Logging in...", "success");
+                setTimeout(() => window.location.href = "dashboard.html", 1500);
+            }
+        }
+
+        // ==========================
+        //  2. SIGN UP (EMAILJS + MANUAL DB INSERT)
+        // ==========================
         async function runSendCode() {
             const btn = document.getElementById('send-code-btn');
-            
-            try { emailjs.init(EMAILJS_KEY); } 
-            catch(e) { showToast("Connection Error", "error"); return; }
+            try { emailjs.init(EMAILJS_KEY); } catch(e) { showToast("Connection Error", "error"); return; }
 
-            const email = document.getElementById('auto-email').value;
+            const email = document.getElementById('auto-email').value.trim().toLowerCase();
             const pass = document.getElementById('reg-pass').value;
             const confirm = document.getElementById('confirm-pass').value;
             const fname = document.getElementById('fname').value;
@@ -352,27 +391,21 @@
             const uni = document.getElementById('uni-select').value;
             const dob = document.getElementById('dob').value;
 
-            if(!email || email.includes('Invalid') || email.includes('Select')) { showToast("Fix Faculty/Reg No", "error"); return; }
-            if(pass !== confirm) { showToast("Passwords don't match", "error"); return; }
-            if(pass.length < 6) { showToast("Password too short", "error"); return; }
-            if(!fname || !lname) { showToast("Enter full name", "error"); return; }
-            if(!faculty) { showToast("Select Faculty", "error"); return; }
+            if(!email || email.includes('invalid')) { showToast("Fix Details", "error"); return; }
+            if(pass !== confirm) { showToast("Passwords mismatch", "error"); return; }
+            if(!fname || !faculty) { showToast("Fill all fields", "error"); return; }
 
-            btn.innerText = "Checking...";
-            btn.disabled = true;
+            btn.innerText = "Checking..."; btn.disabled = true;
 
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const { data: existingProfile } = await supabase.from('profiles').select('email').eq('email', email).single();
-
-            if (existingProfile) {
-                showToast("Account already exists! Please Login.", "error");
-                btn.innerText = "Send Verification Code";
-                btn.disabled = false;
+            const { data: exist } = await client.from('profiles').select('email').eq('email', email).single();
+            if (exist) {
+                showToast("Account exists! Login.", "error");
+                btn.innerText = "Send Verification Code"; btn.disabled = false;
                 setTimeout(() => switchForm('login'), 2000);
                 return;
             }
 
-            btn.innerText = "Sending Code...";
+            btn.innerText = "Sending...";
             genOTP = Math.floor(100000 + Math.random() * 900000).toString();
             userData = { email, pass, fname, lname, reg, faculty, gender, uni, dob };
 
@@ -380,27 +413,26 @@
                 to_email: email, to_name: fname, verification_code: genOTP
             }).then(() => {
                 showToast("Code Sent!", "success");
+                isResetMode = false;
+                document.getElementById('otp-title').innerText = "Verify Registration";
+                document.getElementById('otp-desc').innerText = "Enter the code from EmailJS.";
+                document.getElementById('otp-input').value = "";
                 document.getElementById('signup-form').classList.add('hidden');
                 document.getElementById('otp-overlay').classList.remove('hidden');
-                btn.innerText = "Send Verification Code";
-                btn.disabled = false;
-            }).catch((err) => {
+                btn.innerText = "Send Verification Code"; btn.disabled = false;
+            }).catch(() => {
                 showToast("Email Failed.", "error");
-                btn.innerText = "Send Verification Code";
-                btn.disabled = false;
+                btn.innerText = "Send Verification Code"; btn.disabled = false;
             });
         }
 
-        async function runVerify() {
-            const input = document.getElementById('otp-input').value;
+        async function verifySignupOtp() {
+            const input = document.getElementById('otp-input').value.trim();
             if(input !== genOTP) { showToast("Incorrect Code", "error"); return; }
 
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            // 1. CREATE AUTH USER
-            const { data, error } = await supabase.auth.signUp({
-                email: userData.email, 
-                password: userData.pass,
+            // 1. Create Auth User
+            const { data, error } = await client.auth.signUp({
+                email: userData.email, password: userData.pass,
                 options: { 
                     data: { 
                         first_name: userData.fname, last_name: userData.lname, 
@@ -411,85 +443,66 @@
                 }
             });
 
-            // 2. HANDLE "ALREADY REGISTERED" (Reactivation)
+            // 2. Reactivation Logic
             if (error && error.message.includes("already registered")) {
-                showToast("Reactivating Account...", "success");
-                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-                    email: userData.email, password: userData.pass
-                });
-
-                if (loginError) { showToast("Account exists but wrong password.", "error"); return; }
-
-                const { error: insertError } = await supabase.from('profiles').insert({
-                    id: loginData.user.id,
-                    email: userData.email,
-                    first_name: userData.fname, last_name: userData.lname,
-                    reg_no: userData.reg, faculty: userData.faculty,
-                    gender: userData.gender, university: userData.uni,
-                    birthdate: userData.dob || null
-                });
-
-                if(insertError) showToast("Error restoring profile.", "error");
-                else {
-                    showToast("Account Reactivated! Redirecting...", "success");
-                    setTimeout(() => window.location.href = "dashboard.html", 1500);
-                }
+                showToast("Reactivating...", "success");
+                const { error: loginErr } = await client.auth.signInWithPassword({ email: userData.email, password: userData.pass });
+                if(loginErr) { showToast("Wrong password for existing acct", "error"); return; }
+                
+                const { data: user } = await client.auth.getUser();
+                await insertProfile(user.user.id);
                 return;
             }
 
             if (error) { showToast(error.message, "error"); return; }
 
-            // 3. MANUAL INSERT FOR NEW USERS (THE FIX)
+            // 3. Manual Insert (Fix for missing data)
             if (data.user) {
-                const { error: profileError } = await supabase.from('profiles').insert({
-                    id: data.user.id,
-                    email: userData.email,
-                    first_name: userData.fname,
-                    last_name: userData.lname,
-                    reg_no: userData.reg,
-                    faculty: userData.faculty,
-                    gender: userData.gender,
-                    university: userData.uni,
-                    birthdate: userData.dob || null
-                });
-
-                if (profileError) {
-                    showToast("Profile creation failed: " + profileError.message, "error");
-                } else {
-                    showToast("Success! Redirecting...", "success");
-                    setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
-                }
+                await insertProfile(data.user.id);
             }
         }
 
-        async function runLogin() {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
+        async function insertProfile(uid) {
+            const { error } = await client.from('profiles').insert({
+                id: uid,
+                email: userData.email,
+                first_name: userData.fname, last_name: userData.lname,
+                reg_no: userData.reg, faculty: userData.faculty,
+                gender: userData.gender, university: userData.uni,
+                birthdate: userData.dob || null
+            });
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-            
+            if (error) showToast("Profile Error: " + error.message, "error");
+            else {
+                showToast("Success! Redirecting...", "success");
+                setTimeout(() => window.location.href = "dashboard.html", 1500);
+            }
+        }
+
+        // ==========================
+        //  SHARED OTP HANDLER
+        // ==========================
+        function decideVerify() {
+            if (isResetMode) verifyResetOtp();
+            else verifySignupOtp();
+        }
+
+        // ==========================
+        //  LOGIN
+        // ==========================
+        async function runLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+            const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
             if(error) { showToast("Login Failed: " + error.message, "error"); return; }
 
-            const { data: profile } = await supabase.from('profiles').select('id').eq('id', data.user.id).single();
-
+            const { data: profile } = await client.from('profiles').select('id').eq('id', data.user.id).single();
             if (!profile) {
-                await supabase.auth.signOut();
-                showToast("Account deleted. Please Register again.", "error");
+                await client.auth.signOut(); showToast("Account deleted. Register again.", "error");
             } else {
                 showToast("Login Successful!", "success");
-                setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+                setTimeout(() => window.location.href = "dashboard.html", 1000);
             }
-        }
-        
-        async function runForgot() {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const email = document.getElementById('forgot-email').value;
-            if(!email) { showToast("Enter email first", "error"); return; }
-
-            const { error } = await supabase.auth.resetPasswordForEmail(email);
-            if(error) showToast(error.message, "error"); 
-            else showToast("Reset Link Sent!", "success");
         }
     </script>
 </body>
