@@ -362,7 +362,6 @@
             btn.disabled = true;
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            // 1. CHECK IF PROFILE EXISTS
             const { data: existingProfile } = await supabase.from('profiles').select('email').eq('email', email).single();
 
             if (existingProfile) {
@@ -372,9 +371,6 @@
                 setTimeout(() => switchForm('login'), 2000);
                 return;
             }
-
-            // If we get here, profile doesn't exist. Auth user MIGHT exist (if deleted).
-            // That's fine, runVerify will handle it.
 
             btn.innerText = "Sending Code...";
             genOTP = Math.floor(100000 + Math.random() * 900000).toString();
@@ -401,9 +397,10 @@
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // 1. TRY STANDARD SIGN UP
+            // 1. CREATE AUTH USER
             const { data, error } = await supabase.auth.signUp({
-                email: userData.email, password: userData.pass,
+                email: userData.email, 
+                password: userData.pass,
                 options: { 
                     data: { 
                         first_name: userData.fname, last_name: userData.lname, 
@@ -414,23 +411,17 @@
                 }
             });
 
-            // 2. IF USER ALREADY EXISTS (Dangling Auth) -> REVIVE THEM
+            // 2. HANDLE "ALREADY REGISTERED" (Reactivation)
             if (error && error.message.includes("already registered")) {
                 showToast("Reactivating Account...", "success");
-                
-                // A. Login to confirm ownership
                 const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
                     email: userData.email, password: userData.pass
                 });
 
-                if (loginError) {
-                    showToast("Account exists but wrong password.", "error");
-                    return;
-                }
+                if (loginError) { showToast("Account exists but wrong password.", "error"); return; }
 
-                // B. Re-Insert Profile Row
                 const { error: insertError } = await supabase.from('profiles').insert({
-                    id: loginData.user.id, // Use existing ID
+                    id: loginData.user.id,
                     email: userData.email,
                     first_name: userData.fname, last_name: userData.lname,
                     reg_no: userData.reg, faculty: userData.faculty,
@@ -446,30 +437,43 @@
                 return;
             }
 
-            if(error) {
-                showToast(error.message, "error");
-            } else {
-                showToast("Success! Redirecting...", "success");
-                setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+            if (error) { showToast(error.message, "error"); return; }
+
+            // 3. MANUAL INSERT FOR NEW USERS (THE FIX)
+            if (data.user) {
+                const { error: profileError } = await supabase.from('profiles').insert({
+                    id: data.user.id,
+                    email: userData.email,
+                    first_name: userData.fname,
+                    last_name: userData.lname,
+                    reg_no: userData.reg,
+                    faculty: userData.faculty,
+                    gender: userData.gender,
+                    university: userData.uni,
+                    birthdate: userData.dob || null
+                });
+
+                if (profileError) {
+                    showToast("Profile creation failed: " + profileError.message, "error");
+                } else {
+                    showToast("Success! Redirecting...", "success");
+                    setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+                }
             }
         }
 
-        // LOGIN WITH PROFILE CHECK
         async function runLogin() {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
 
-            // 1. Check Credentials
             const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
             
             if(error) { showToast("Login Failed: " + error.message, "error"); return; }
 
-            // 2. Check if Profile is Deleted
             const { data: profile } = await supabase.from('profiles').select('id').eq('id', data.user.id).single();
 
             if (!profile) {
-                // Profile deleted? Log them out immediately.
                 await supabase.auth.signOut();
                 showToast("Account deleted. Please Register again.", "error");
             } else {
