@@ -400,16 +400,26 @@
         }
 
         async function loadNotifications() {
-            const { data: notifs } = await client
+            // Fetch notifications AND the sender's name
+            const { data: notifs, error } = await client
                 .from('notifications')
-                .select(`*, sender:sender_id (first_name, last_name)`)
+                .select(`
+                    *,
+                    sender:sender_id (first_name, last_name)
+                `)
                 .eq('receiver_id', currentUser.id)
                 .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Notification Error:", error);
+                // If the error is about "sender", it means the Foreign Key is missing (Run Step 1 SQL)
+                return;
+            }
 
             const badge = document.getElementById('notif-badge');
             const list = document.getElementById('notif-list');
             
-            // Count only UNREAD notifications
+            // Count UNREAD items for the Red Badge
             const unreadCount = notifs ? notifs.filter(n => !n.is_read).length : 0;
             
             if(unreadCount > 0) {
@@ -419,23 +429,29 @@
                 badge.style.display = 'none';
             }
 
+            // Render the List (Both Old and New)
             if(notifs && notifs.length > 0) {
                 list.innerHTML = '';
                 notifs.forEach(n => {
-                    const senderName = n.is_anonymous ? "Secret Admirer" : `${n.sender.first_name} ${n.sender.last_name}`;
-                    // Add a dot for unread items
-                    const unreadDot = !n.is_read ? `<span style="width:8px; height:8px; background:var(--accent); border-radius:50%; display:inline-block; margin-left:5px;"></span>` : '';
+                    const senderName = n.sender ? `${n.sender.first_name} ${n.sender.last_name}` : "Unknown Student";
                     
+                    // Style: Darker background if read, Brighter if unread
+                    const bgStyle = n.is_read ? '' : 'background: rgba(188, 19, 254, 0.1); border-left: 3px solid #bc13fe;';
+                    const iconColor = n.is_read ? '#666' : '#bc13fe';
+
                     list.innerHTML += `
-                    <div class="notif-item" style="${!n.is_read ? 'background:rgba(188,19,254,0.05);' : ''}">
-                        <div style="color:var(--accent); font-weight:bold; display:flex; justify-content:space-between;">
-                            ${senderName} ${unreadDot}
+                    <div class="notif-item" style="${bgStyle}">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-heart" style="color:${iconColor};"></i>
+                            <div>
+                                <div style="color:white; font-weight:bold; font-size:0.9rem;">${senderName}</div>
+                                <div style="font-size:0.75rem; color:#aaa;">Sent you a crush request!</div>
+                            </div>
                         </div>
-                        <div style="font-size:0.8rem; color:#aaa;">Sent you a crush request! 💘</div>
                     </div>`;
                 });
             } else {
-                list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+                list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
             }
         }
 
@@ -637,5 +653,6 @@
     </script>
 </body>
 </html>
+
 
 
