@@ -18,8 +18,10 @@
             --accent: #bc13fe; 
             --highlight: #0ff0fc;
             --danger: #ff0055;
-            --success: #00ff88; /* Added for Success Toasts */
+            --success: #00ff88;
+            --warning: #ffb700;
             --text-main: #ffffff;
+            --text-muted: #888;
             --border: #333;
             --font-head: 'Playfair Display', serif;
             --font-body: 'Inter', sans-serif;
@@ -32,22 +34,7 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-        /* --- TOAST NOTIFICATIONS (COPIED FROM AUTH.HTML) --- */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast {
-            background: rgba(20, 20, 20, 0.95); border-left: 4px solid var(--danger); /* Default red for error */
-            padding: 15px 25px; border-radius: 8px; color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px;
-            font-size: 0.9rem; animation: slideIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .toast.success { border-left-color: var(--success); } /* Green for success */
-        .toast i { font-size: 1.2rem; }
-        
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
-
-        /* --- SIDEBAR / BOTTOM NAV --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 260px; background: rgba(18, 18, 18, 0.98); padding: 2rem;
             display: flex; flex-direction: column; border-right: 1px solid var(--border);
@@ -62,81 +49,137 @@
         .nav-item:hover, .nav-item.active { background: rgba(188, 19, 254, 0.1); color: var(--accent); border: 1px solid var(--accent); }
 
         /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; padding: 2rem; overflow-y: auto; position: relative; padding-bottom: 80px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .main-content { flex: 1; padding: 0; overflow-y: auto; position: relative; padding-bottom: 80px; }
         
-        .welcome-box h1 { font-family: var(--font-head); font-size: 2.2rem; color: white; margin-bottom: 5px; }
-        .welcome-box p { color: var(--highlight); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
+        /* PROFILE HEADER */
+        .profile-header {
+            position: relative; background: linear-gradient(135deg, #1a0b2e, #000);
+            border-bottom: 1px solid var(--border); padding-bottom: 2rem;
+        }
+        .cover-photo {
+            height: 220px; background: linear-gradient(90deg, var(--accent), var(--highlight));
+            opacity: 0.8; position: relative;
+        }
+        
+        .profile-container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; position: relative; display: flex; flex-direction: column; }
+
+        .profile-pic-wrapper {
+            margin-top: -85px; align-self: flex-start;
+            width: 170px; height: 170px; border-radius: 50%;
+            background: #000; padding: 5px; z-index: 5; position: relative;
+        }
+        
+        .profile-pic {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: #222; background-size: cover; background-position: center;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: var(--accent); border: 2px solid var(--accent);
+            overflow: hidden; font-weight: bold; text-transform: uppercase;
+        }
+
+        /* AVATAR EDIT ICON */
+        .edit-avatar-btn {
+            position: absolute; bottom: 5px; right: 10px;
+            background: var(--highlight); color: #000;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 2px solid #000; transition: 0.3s;
+        }
+        .edit-avatar-btn:hover { transform: scale(1.1); background: white; }
+
+        .profile-info-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; flex-wrap: wrap; gap: 20px; }
+        .profile-names h1 { font-size: 2.5rem; font-weight: 800; font-family: var(--font-head); margin-bottom: 5px; }
+        .profile-names p { color: var(--text-muted); font-size: 1.1rem; }
+
+        /* CONTAINERS */
+        .view-mode-container, .edit-mode-container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; animation: fadeIn 0.5s ease; }
+        .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* CARDS */
-        .neon-card { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: 0 0 20px rgba(188, 19, 254, 0.1); margin-bottom: 2rem; }
-        .section-title { font-family: var(--font-head); color: var(--accent); margin-bottom: 1.5rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .intro-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2rem; margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .intro-header { font-family: var(--font-head); font-size: 1.4rem; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+
+        /* PROFESSIONAL NOTE */
+        .pro-note {
+            background: rgba(255, 183, 0, 0.1); border-left: 4px solid var(--warning);
+            padding: 15px; border-radius: 8px; margin-bottom: 25px;
+            color: #ddd; font-size: 0.9rem; line-height: 1.5;
+        }
+        .pro-note strong { color: var(--warning); }
+
+        .bio-section {
+            background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px;
+            font-style: italic; color: #ddd; margin-bottom: 25px; line-height: 1.6;
+            border-left: 3px solid var(--highlight);
+        }
+
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .detail-item { display: flex; align-items: center; gap: 12px; color: #ccc; font-size: 1rem; }
+        .detail-item i { color: var(--text-muted); width: 25px; text-align: center; font-size: 1.2rem; }
+        .detail-item span { font-weight: 600; color: white; }
 
         /* FORMS */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .full-width { grid-column: span 2; }
-        
-        label { font-size: 0.75rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        label { font-size: 0.75rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 8px; display: block; }
         input, select, textarea {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
-            background: #1a1a20; color: white; font-size: 0.95rem; transition: 0.3s;
+            width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border);
+            background: #1a1a20; color: white; font-size: 1rem; transition: 0.3s;
         }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        input[readonly] { background: #0a0a0a; color: #555; cursor: not-allowed; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        input[readonly] { background: #0a0a0a; color: #555; cursor: not-allowed; border-color: #222; }
 
-        .btn-save { background: var(--accent); color: white; padding: 12px 30px; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; float: right; }
+        /* BUTTONS */
+        .btn-primary { 
+            background: var(--accent); color: white; padding: 12px 25px; border: none; border-radius: 50px; 
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(188, 19, 254, 0.4); }
+        .btn-secondary { background: transparent; color: #aaa; border: 1px solid #555; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+        .btn-danger { background: rgba(255, 0, 85, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+
+        /* SOCIALS */
+        .social-display { display: flex; gap: 15px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #333; }
+        .social-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #222; transition: 0.3s; text-decoration: none; }
+        .social-btn:hover { transform: translateY(-3px); }
+        .fb { color: #1877F2; } .wa { color: #25D366; } .ig { color: #E4405F; }
+
+        /* SEARCH & MODALS */
+        .filter-container { max-width: 900px; margin: 2rem auto; padding: 1.5rem; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; background: rgba(188, 19, 254, 0.05); border-radius: 16px; border: 1px solid var(--border); }
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+        .user-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; }
         
-        /* DANGER ZONE */
-        .danger-zone { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #333; }
-        .btn-delete {
-            background: rgba(255, 0, 85, 0.1); color: var(--danger); border: 1px solid var(--danger);
-            padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s;
-        }
-        .btn-delete:hover { background: var(--danger); color: white; }
-
-        /* SEARCH FILTERS */
-        .filter-container {
-            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap: 10px;
-            background: rgba(188, 19, 254, 0.05); padding: 15px; border-radius: 16px; border: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-        .user-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; }
-
-        /* MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: #111; width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--accent); padding: 2rem; position: relative; animation: popIn 0.3s ease; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #fff; cursor: pointer; }
-        
         @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
-        .delete-input { border: 1px solid var(--danger); color: var(--danger); text-align: center; font-weight: bold; letter-spacing: 2px; margin: 15px 0; }
-
-        /* MOBILE RESPONSIVE */
-        @media (max-width: 1000px) {
-             .filter-container { grid-template-columns: 1fr 1fr; }
-        }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar {
-                position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
-                flex-direction: row; justify-content: space-around; align-items: center;
-                padding: 0; border-right: none; border-top: 1px solid var(--border);
-                background: black;
-            }
-            .logo, .nav-item span { display: none; }
-            .nav-item { margin: 0; padding: 10px; font-size: 1.2rem; border: none; }
-            .nav-item.active { background: transparent; color: var(--accent); border: none; }
-            .main-content { padding: 1.5rem; padding-bottom: 90px; }
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .profile-pic-wrapper { margin: -85px auto 0; align-self: center; }
+            .profile-info-row { justify-content: center; text-align: center; flex-direction: column; gap: 15px; }
+            .detail-grid { grid-template-columns: 1fr; }
             .form-grid, .filter-container { grid-template-columns: 1fr; }
             .full-width { grid-column: span 1; }
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; flex-direction: row; justify-content: space-around; align-items: center; padding: 0; border-right: none; border-top: 1px solid var(--border); background: black; }
+            .logo, .nav-item span { display: none; }
+            .nav-item { margin: 0; padding: 10px; font-size: 1.4rem; border: none; }
+            .nav-item.active { background: transparent; color: var(--accent); border: none; }
+            .main-content { padding-bottom: 85px; }
         }
     </style>
 </head>
 <body>
     
-    <div id="toast-container"></div>
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
     <div class="sidebar">
         <div class="logo"><i class="fa-solid fa-graduation-cap"></i><span>UniPartner</span></div>
@@ -148,86 +191,156 @@
     </div>
 
     <div class="main-content">
-        <div class="header">
-            <div class="welcome-box">
-                <h1 id="welcome-msg">Good Morning</h1>
-                <p>Student Portal</p>
-            </div>
-            <div class="notification-wrapper">
-                <i class="fa-regular fa-bell" style="font-size: 1.5rem; color:white; cursor:pointer;" onclick="showToast('No new notifications', 'error')"></i>
-            </div>
-        </div>
-
-        <div id="profile-section" class="neon-card">
-            <h3 class="section-title">Identity Details</h3>
+        
+        <div id="profile-section">
             
-            <div class="form-grid">
-                <div class="form-group"><label>First Name (Locked)</label><input type="text" id="p-fname" readonly></div>
-                <div class="form-group"><label>Last Name (Locked)</label><input type="text" id="p-lname" readonly></div>
-                <div class="form-group full-width"><label>Reg No (Locked)</label><input type="text" id="p-regno" readonly></div>
-                <div class="form-group full-width"><label>University (Locked)</label><input type="text" id="p-uni" readonly></div>
-                
-                <div class="form-group"><label>Faculty (Locked)</label><input type="text" id="p-fac" readonly></div>
-                <div class="form-group"><label>Birth Date (Locked)</label><input type="date" id="p-dob" readonly></div>
-                
-                <div class="form-group"><label>Gender (Locked)</label><input type="text" id="p-gender" readonly></div>
-                <div class="form-group"><label>Status</label><select id="p-status"><option>Single</option><option>In a Relationship</option></select></div>
-                
-                <div class="form-group full-width"><label>Bio</label><textarea id="p-bio" rows="4"></textarea></div>
-                
-                <div class="form-group full-width"><label>Socials</label>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="p-fb" placeholder="Facebook URL" style="flex:1">
-                        <input type="text" id="p-wa" placeholder="WhatsApp" style="flex:1">
+            <div class="profile-header">
+                <div class="cover-photo"></div>
+                <div class="profile-container">
+                    <div class="profile-pic-wrapper">
+                        <div class="profile-pic" id="profile-pic-display">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        
+                        <div class="edit-avatar-btn" onclick="openAvatarStudio()">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
                     </div>
-                    <input type="text" id="p-ig" placeholder="Instagram URL" style="width:100%; margin-top:10px;">
+                    
+                    <div class="profile-info-row">
+                        <div class="profile-names">
+                            <h1 id="disp-name">Loading...</h1>
+                            <p id="disp-reg-header">Student</p>
+                        </div>
+                        <button id="btn-edit-toggle" class="btn-primary" onclick="toggleEditMode(true)">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div style="margin-top: 20px; overflow: hidden;">
-                <button type="button" class="btn-save" onclick="updateProfile()">Save Changes</button>
+
+            <div id="view-mode-container" class="view-mode-container">
+                <div class="intro-card">
+                    <div class="intro-header">About Me</div>
+                    <div class="bio-section" id="disp-bio">No bio yet.</div>
+                    
+                    <div class="detail-grid">
+                        <div class="detail-item"><i class="fa-solid fa-building-columns"></i> University: <span id="disp-uni">--</span></div>
+                        <div class="detail-item"><i class="fa-solid fa-book-open"></i> Faculty: <span id="disp-fac">--</span></div>
+                        <div class="detail-item"><i class="fa-solid fa-id-badge"></i> Reg No: <span id="disp-reg">--</span></div>
+                        <div class="detail-item"><i class="fa-solid fa-venus-mars"></i> Gender: <span id="disp-gender">--</span></div>
+                        <div class="detail-item"><i class="fa-solid fa-cake-candles"></i> Age: <span id="disp-age">--</span></div>
+                        <div class="detail-item"><i class="fa-solid fa-heart"></i> Status: <span id="disp-status" style="color:var(--highlight)">--</span></div>
+                    </div>
+
+                    <div class="social-display">
+                        <a id="link-fb" href="#" target="_blank" class="social-btn fb"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a id="link-wa" href="#" target="_blank" class="social-btn wa"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a id="link-ig" href="#" target="_blank" class="social-btn ig"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
             </div>
 
-            <div class="danger-zone">
-                <h4 style="color:var(--danger); margin-bottom:10px;">Danger Zone</h4>
-                <p style="font-size:0.8rem; color:#888; margin-bottom:15px;">Irreversible action. All data will be wiped.</p>
-                <button class="btn-delete" onclick="openDeleteModal()">Delete My Account</button>
+            <div id="edit-mode-container" class="edit-mode-container hidden">
+                <div class="intro-card" style="border-color: var(--accent);">
+                    <div class="intro-header">Update Details</div>
+                    
+                    <div class="pro-note">
+                        <i class="fa-solid fa-circle-info"></i> <strong>Profile Photo Policy:</strong><br>
+                        To keep this platform 100% free and fast, we use smart avatars. You can customize yours by clicking the <strong>Palette Icon</strong> on your photo.<br><br>
+                        Please link your <strong>Instagram</strong> or <strong>Facebook</strong> below so others can see your real photos!
+                    </div>
+
+                    <form id="updateForm">
+                        <div class="form-grid">
+                            <div class="form-group"><label>First Name (Locked)</label><input type="text" id="p-fname" readonly></div>
+                            <div class="form-group"><label>Last Name (Locked)</label><input type="text" id="p-lname" readonly></div>
+                            <div class="form-group full-width"><label>Reg No (Locked)</label><input type="text" id="p-regno" readonly></div>
+                            <div class="form-group full-width"><label>University (Locked)</label><input type="text" id="p-uni" readonly></div>
+                            <div class="form-group full-width"><label>Faculty (Locked)</label><input type="text" id="p-fac" readonly></div>
+                            <div class="form-group"><label>Birth Date (Locked)</label><input type="date" id="p-dob" readonly></div>
+                            <div class="form-group"><label>Gender (Locked)</label><input type="text" id="p-gender" readonly></div>
+                            
+                            <div class="form-group"><label>Relationship Status</label>
+                                <select id="p-status"><option>Single</option><option>In a Relationship</option><option>It's Complicated</option></select>
+                            </div>
+                            
+                            <div class="form-group full-width"><label>Bio Description</label><textarea id="p-bio" rows="5"></textarea></div>
+                            
+                            <div class="form-group full-width"><label>Social Links</label>
+                                <input type="text" id="p-fb" placeholder="Facebook URL" style="margin-bottom:10px;">
+                                <input type="text" id="p-wa" placeholder="WhatsApp Number" style="margin-bottom:10px;">
+                                <input type="text" id="p-ig" placeholder="Instagram URL">
+                            </div>
+                        </div>
+                        <div style="margin-top: 30px; display:flex; gap:15px; justify-content:flex-end;">
+                            <button type="button" class="btn-secondary" onclick="toggleEditMode(false)">Cancel</button>
+                            <button type="button" class="btn-primary" onclick="updateProfile()">Save Changes</button>
+                        </div>
+                    </form>
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #333;">
+                        <h4 style="color:var(--danger); margin-bottom:10px;">Danger Zone</h4>
+                        <button class="btn-danger" onclick="openDeleteModal()">Delete My Account</button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div id="search-section" style="display: none;">
-            <div class="filter-container">
-                <input type="text" id="search-name" placeholder="Name..." style="background:#000;">
-                
-                <select id="filter-uni">
-                    <option value="">All Universities</option>
-                    <option value="University of Peradeniya">UOP</option>
-                    <option value="University of Colombo">UOC</option>
-                    <option value="University of Moratuwa">UOM</option>
-                    <option value="University of Kelaniya">UOK</option>
-                    <option value="University of Japura">USJ</option>
-                </select>
+            <div style="padding-top: 2rem;">
+                <div class="filter-container">
+                    <input type="text" id="search-name" placeholder="Name..." style="background:#000;">
+                    <select id="filter-uni"><option value="">All Unis</option><option value="University of Peradeniya">UOP</option><option value="University of Colombo">UOC</option><option value="University of Moratuwa">UOM</option></select>
+                    <select id="filter-faculty"><option value="">All Faculties</option><option value="Engineering">Engineering</option><option value="Medicine">Medicine</option><option value="Science">Science</option><option value="Arts">Arts</option></select>
+                    <select id="filter-gender"><option value="">Any Gender</option><option value="Male">Male</option><option value="Female">Female</option></select>
+                    <select id="filter-age"><option value="">Any Age</option><option value="18-21">18 - 21</option><option value="22-24">22 - 24</option><option value="25+">25+</option></select>
+                    <button class="btn-primary" style="width:100%; justify-content:center;" onclick="performSearch()">Search</button>
+                </div>
+                <div class="user-grid" id="results-grid">
+                    <p style="color:#777; grid-column:1/-1; text-align:center;">Apply filters to find students...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <select id="filter-faculty"><option value="">All Faculties</option><option value="Engineering">Engineering</option><option value="Medicine">Medicine</option><option value="Science">Science</option><option value="Arts">Arts</option></select>
-                <select id="filter-gender"><option value="">Any Gender</option><option value="Male">Male</option><option value="Female">Female</option></select>
-                <select id="filter-age"><option value="">Any Age</option><option value="18-21">18 - 21</option><option value="22-24">22 - 24</option><option value="25+">25+</option></select>
-                
-                <button class="btn-save" style="width:100%; margin:0; float:none;" onclick="performSearch()">Search</button>
-            </div>
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('avatarModal')">&times;</span>
+            <h2 style="text-align:center; color:white; margin-bottom:20px;">Avatar Studio</h2>
             
-            <div class="user-grid" id="results-grid">
-                <p style="color:#777; grid-column:1/-1; text-align:center;">Apply filters to find students...</p>
+            <div id="studio-preview" style="width:150px; height:150px; border-radius:50%; background:#222; margin:0 auto 20px; border:2px solid var(--accent); background-size:cover;"></div>
+            
+            <div class="form-group">
+                <label>Choose Style</label>
+                <select id="studio-style" onchange="updateStudioPreview()">
+                    <option value="initials">Initials (Letters)</option>
+                    <option value="avataaars">Cartoon (Faces)</option>
+                    <option value="bottts">Robots</option>
+                    <option value="lorelei">Anime</option>
+                </select>
             </div>
+
+            <div class="form-group">
+                <label>Magic Seed (Type anything to change look)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="studio-seed" placeholder="Type name..." oninput="updateStudioPreview()">
+                    <button class="btn-secondary" onclick="randomizeSeed()" style="padding:10px;"><i class="fa-solid fa-dice"></i></button>
+                </div>
+            </div>
+
+            <button class="btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="saveAvatar()">Use This Avatar</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="profileModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('profileModal')">&times;</span>
-            <h2 id="m-name" style="text-align:center; color:white;">User Name</h2>
+            <div id="m-pic-container" style="width:100px; height:100px; margin:0 auto 15px; border-radius:50%; overflow:hidden; border:2px solid var(--accent);">
+                <div id="m-pic" style="width:100%; height:100%; background:#222; background-size:cover;"></div>
+            </div>
+            <h2 id="m-name" style="text-align:center; color:white;">User</h2>
             <p id="m-faculty" style="text-align:center; color:var(--highlight);">Faculty</p>
-            <p id="m-details" style="text-align:center; color:#777; font-size:0.8rem; margin-bottom:10px;">Age • Gender</p>
-            
+            <p id="m-details" style="text-align:center; color:#777; font-size:0.8rem; margin-bottom:10px;">--</p>
             <div style="padding: 20px 0;">
                 <p id="m-bio" style="color:#ccc; background:#1a1a1a; padding:15px; border-radius:8px;">Bio...</p>
                 <div style="text-align:center; margin-top:20px; font-size:1.5rem; gap:15px; display:flex; justify-content:center;">
@@ -236,7 +349,7 @@
                     <a href="#" id="m-ig" target="_blank" style="color:white;"><i class="fa-brands fa-instagram"></i></a>
                 </div>
                 <input type="hidden" id="m-userid">
-                <button onclick="sendCrushRequestFromModal()" class="btn-save" style="width:100%; margin-top:20px; float:none;">Send Crush Request 💘</button>
+                <button onclick="sendCrushRequestFromModal()" class="btn-primary" style="width:100%; margin-top:20px; justify-content:center;">Send Crush Request 💘</button>
             </div>
         </div>
     </div>
@@ -246,35 +359,31 @@
             <span class="close-modal" onclick="closeModal('deleteModal')">&times;</span>
             <h2 style="text-align:center; color:var(--danger);">Delete Account?</h2>
             <p style="text-align:center; color:#ccc; margin: 15px 0;">Type <strong>DELETE</strong> below to confirm.</p>
-            <input type="text" id="delete-confirm-input" class="delete-input" placeholder="Type DELETE here">
-            <button onclick="confirmDeleteAccount()" class="btn-delete" style="background:var(--danger); color:white; margin-top:10px;">Confirm Deletion</button>
-            <button onclick="closeModal('deleteModal')" style="width:100%; background:transparent; border:none; color:#888; margin-top:10px; cursor:pointer;">Cancel</button>
+            <input type="text" id="delete-confirm-input" class="delete-input" placeholder="DELETE" style="text-align:center; font-weight:bold; letter-spacing:2px; border-color:var(--danger); width:100%; padding:10px; margin: 15px 0; background:#000; color:white; border:1px solid var(--danger);">
+            <button onclick="confirmDeleteAccount()" class="btn-danger" style="width:100%; margin-top:10px;">Confirm Deletion</button>
         </div>
     </div>
 
     <script>
-        // --- 1. TOAST FUNCTION ---
-        function showToast(msg, type='error') {
+        // --- 1. TOAST ---
+        function showToast(msg, type='success') {
             const box = document.getElementById('toast-container');
             const div = document.createElement('div');
-            div.className = `toast ${type}`;
-            div.innerHTML = `<i class="fas ${type==='success'?'fa-check':'fa-exclamation-circle'}"></i> <span>${msg}</span>`;
-            box.appendChild(div);
-            setTimeout(()=>div.remove(), 4000);
+            div.style.cssText = `background:rgba(20,20,20,0.95); border-left:4px solid ${type==='error'?'#ff0055':'#00ff88'}; padding:15px 25px; border-radius:8px; color:white; margin-bottom:10px; box-shadow:0 5px 15px rgba(0,0,0,0.5); display:flex; align-items:center; gap:10px; animation:slideIn 0.3s ease, fadeOut 0.5s ease 3s forwards;`;
+            div.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-check'}"></i> <span>${msg}</span>`;
+            box.appendChild(div); setTimeout(()=>div.remove(), 3500);
         }
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}} @keyframes fadeOut{to{opacity:0;transform:translateY(-10px)}}`;
+        document.head.appendChild(style);
 
-        // --- 2. GREETING ---
-        const h = new Date().getHours();
-        const msg = h < 12 ? "Good Morning" : (h < 16 ? "Good Afternoon" : "Good Evening");
-        document.getElementById('welcome-msg').innerText = msg;
-
-        // --- 3. CONFIG ---
+        // --- 2. CONFIG ---
         const SUPABASE_URL = 'https://qfphldkagncbdayxbwkm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcGhsZGthZ25jYmRheXhid2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjEwNDUsImV4cCI6MjA4NDg5NzA0NX0.1wFaOihsBx5dMkVzHviqDEwAKd9EDnNIr1WqpPVgJLY';
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUser = null;
 
-        // --- 4. STARTUP ---
+        // --- 3. STARTUP ---
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await client.auth.getSession();
             if (!session) { window.location.href = 'auth.html'; return; }
@@ -282,35 +391,105 @@
             loadProfile();
         });
 
+        // --- 4. TOGGLE MODE ---
+        function toggleEditMode(showEdit) {
+            const view = document.getElementById('view-mode-container');
+            const edit = document.getElementById('edit-mode-container');
+            const btn = document.getElementById('btn-edit-toggle');
+            if (showEdit) { view.classList.add('hidden'); edit.classList.remove('hidden'); btn.classList.add('hidden'); }
+            else { view.classList.remove('hidden'); edit.classList.add('hidden'); btn.classList.remove('hidden'); }
+        }
+
         // --- 5. LOAD PROFILE ---
         async function loadProfile() {
             let { data } = await client.from('profiles').select('*').eq('email', currentUser.email).single();
+            if (!data) { await client.auth.signOut(); window.location.href = 'auth.html'; return; }
+
+            // TEXT DATA
+            document.getElementById('disp-name').innerText = `${data.first_name} ${data.last_name}`;
+            document.getElementById('disp-reg-header').innerText = data.reg_no;
+            document.getElementById('disp-bio').innerText = data.bio || "No bio description added yet.";
+            document.getElementById('disp-uni').innerText = data.university;
+            document.getElementById('disp-fac').innerText = data.faculty;
+            document.getElementById('disp-reg').innerText = data.reg_no;
+            document.getElementById('disp-gender').innerText = data.gender;
+            document.getElementById('disp-status').innerText = data.status;
             
-            // STRICT REDIRECT IF DELETED
-            if (!data) {
-                await client.auth.signOut();
-                window.location.href = 'auth.html';
-                return;
+            if (data.birthdate) {
+                const age = Math.floor((new Date() - new Date(data.birthdate)) / 31557600000);
+                document.getElementById('disp-age').innerText = `${age} Years`;
+            } else { document.getElementById('disp-age').innerText = "--"; }
+
+            const soc = data.socials || {};
+            document.getElementById('link-fb').href = soc.fb || '#';
+            document.getElementById('link-wa').href = soc.wa ? `https://wa.me/${soc.wa}` : '#';
+            document.getElementById('link-ig').href = soc.ig || '#';
+
+            // AVATAR LOGIC (DEFAULT = INITIALS)
+            const picContainer = document.getElementById('profile-pic-display');
+            if (data.avatar_url) {
+                picContainer.style.background = `url("${data.avatar_url}") center/cover`;
+                picContainer.innerText = "";
+            } else {
+                // If NO custom avatar set, show INITIALS by default (letters)
+                const initialsUrl = `https://api.dicebear.com/9.x/initials/svg?seed=${data.first_name}&backgroundColor=bc13fe`;
+                picContainer.style.background = `url("${initialsUrl}") center/cover`;
+                picContainer.innerText = "";
             }
 
-            document.getElementById('welcome-msg').innerText = `${msg}, ${data.first_name}`;
-            document.getElementById('p-fname').value = data.first_name || '';
-            document.getElementById('p-lname').value = data.last_name || '';
-            document.getElementById('p-regno').value = data.reg_no || '';
-            document.getElementById('p-uni').value = data.university || '';
-            document.getElementById('p-fac').value = data.faculty || '';
-            document.getElementById('p-gender').value = data.gender || '';
-            document.getElementById('p-dob').value = data.birthdate || '';
+            // FORM POPULATE
+            document.getElementById('p-fname').value = data.first_name;
+            document.getElementById('p-lname').value = data.last_name;
+            document.getElementById('p-regno').value = data.reg_no;
+            document.getElementById('p-uni').value = data.university;
+            document.getElementById('p-fac').value = data.faculty;
+            document.getElementById('p-dob').value = data.birthdate;
+            document.getElementById('p-gender').value = data.gender;
             document.getElementById('p-status').value = data.status || 'Single';
             document.getElementById('p-bio').value = data.bio || '';
-            if (data.socials) {
-                document.getElementById('p-fb').value = data.socials.fb || '';
-                document.getElementById('p-wa').value = data.socials.wa || '';
-                document.getElementById('p-ig').value = data.socials.ig || '';
+            document.getElementById('p-fb').value = soc.fb || '';
+            document.getElementById('p-wa').value = soc.wa || '';
+            document.getElementById('p-ig').value = soc.ig || '';
+        }
+
+        // --- 6. AVATAR STUDIO LOGIC ---
+        function openAvatarStudio() {
+            // Pre-fill seed with name
+            const name = document.getElementById('p-fname').value;
+            document.getElementById('studio-seed').value = name;
+            updateStudioPreview();
+            document.getElementById('avatarModal').style.display = 'flex';
+        }
+
+        function updateStudioPreview() {
+            const style = document.getElementById('studio-style').value;
+            const seed = document.getElementById('studio-seed').value || 'User';
+            const url = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+            document.getElementById('studio-preview').style.background = `url("${url}") center/cover`;
+        }
+
+        function randomizeSeed() {
+            document.getElementById('studio-seed').value = Math.random().toString(36).substring(7);
+            updateStudioPreview();
+        }
+
+        async function saveAvatar() {
+            const style = document.getElementById('studio-style').value;
+            const seed = document.getElementById('studio-seed').value || 'User';
+            const finalUrl = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=bc13fe`;
+
+            // Save URL string to DB
+            const { error } = await client.from('profiles').update({ avatar_url: finalUrl }).eq('email', currentUser.email);
+            
+            if(error) showToast("Error saving: " + error.message, 'error');
+            else {
+                showToast("Avatar Updated!", 'success');
+                loadProfile();
+                closeModal('avatarModal');
             }
         }
 
-        // --- 6. UPDATE ---
+        // --- 7. UPDATE PROFILE ---
         async function updateProfile() {
             const updates = {
                 status: document.getElementById('p-status').value,
@@ -318,35 +497,25 @@
                 socials: { 
                     fb: document.getElementById('p-fb').value, 
                     wa: document.getElementById('p-wa').value,
-                    ig: document.getElementById('p-ig').value
+                    ig: document.getElementById('p-ig').value 
                 }
             };
             const { error } = await client.from('profiles').update(updates).eq('email', currentUser.email);
-            if (error) showToast(error.message, "error");
-            else showToast("Profile Updated Successfully!", "success");
+            if (error) showToast(error.message, 'error');
+            else { showToast("Profile Updated!", 'success'); loadProfile(); toggleEditMode(false); }
         }
 
-        // --- 7. DELETE ACCOUNT ---
+        // --- 8. DELETE ---
         function openDeleteModal() { document.getElementById('deleteModal').style.display = 'flex'; }
-        
         async function confirmDeleteAccount() {
             const input = document.getElementById('delete-confirm-input').value;
-            if(input !== "DELETE") { showToast("Type DELETE to confirm.", "error"); return; }
-
+            if(input !== "DELETE") { showToast("Type DELETE to confirm.", 'error'); return; }
             const { error } = await client.from('profiles').delete().eq('email', currentUser.email);
-            
-            if(error) {
-                showToast(error.message, "error");
-            } else {
-                showToast("Account Deleted. Goodbye!", "success");
-                setTimeout(async () => {
-                    await client.auth.signOut();
-                    window.location.href = 'auth.html';
-                }, 1500);
-            }
+            if(error) showToast(error.message, 'error');
+            else { showToast("Account Deleted. Goodbye!", 'success'); setTimeout(async()=>{ await client.auth.signOut(); window.location.href='auth.html'; }, 1500); }
         }
 
-        // --- 8. SEARCH ---
+        // --- 9. SEARCH ---
         async function performSearch() {
             const name = document.getElementById('search-name').value;
             const uni = document.getElementById('filter-uni').value;
@@ -358,7 +527,6 @@
             grid.innerHTML = "<p style='color:#ccc; text-align:center;'>Searching...</p>";
 
             let query = client.from('profiles').select('*').neq('email', currentUser.email);
-
             if (name) query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
             if (uni) query = query.eq('university', uni);
             if (fac) query = query.eq('faculty', fac);
@@ -371,7 +539,6 @@
                 if (ageRange === '18-21') { minAge = 18; maxAge = 21; }
                 else if (ageRange === '22-24') { minAge = 22; maxAge = 24; }
                 else if (ageRange === '25+') { minAge = 25; maxAge = 100; }
-
                 const maxBirthDate = new Date(year - minAge, today.getMonth(), today.getDate()).toISOString();
                 const minBirthDate = new Date(year - maxAge - 1, today.getMonth(), today.getDate()).toISOString();
                 query = query.lte('birthdate', maxBirthDate).gte('birthdate', minBirthDate);
@@ -383,51 +550,54 @@
             grid.innerHTML = "";
             users.forEach(u => {
                 const fullName = `${u.first_name} ${u.last_name}`;
-                let age = "Unknown Age";
-                if(u.birthdate) {
-                    const diff = Date.now() - new Date(u.birthdate).getTime();
-                    age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)) + " Years";
-                }
+                let age = "??";
+                if(u.birthdate) age = Math.floor((new Date() - new Date(u.birthdate)) / 31557600000);
                 const bio = encodeURIComponent(u.bio || "");
                 const social = encodeURIComponent(JSON.stringify(u.socials || {}));
                 
+                // USE SAVED AVATAR OR DEFAULT INITIALS
+                const picUrl = u.avatar_url || `https://api.dicebear.com/9.x/initials/svg?seed=${u.first_name}&backgroundColor=bc13fe`;
+
                 grid.innerHTML += `
                 <div class="user-card">
+                    <div style="width:80px; height:80px; border-radius:50%; background:url('${picUrl}') center/cover; margin:0 auto 10px; border:2px solid var(--accent);"></div>
                     <h3>${fullName}</h3>
-                    <p style="margin-bottom:5px;">${u.faculty || 'Unknown'}</p>
-                    <p style="font-size:0.75rem; color:#888;">${u.gender || '?'} • ${age}</p>
-                    <button class="btn-save" style="float:none; font-size:0.8rem; padding:8px 15px;" 
-                        onclick="openModal('${fullName}', '${u.faculty}', '${bio}', '${social}', '${u.id}', '${age}', '${u.gender}')">
+                    <p style="margin-bottom:5px;">${u.faculty}</p>
+                    <p style="font-size:0.75rem; color:#888;">${u.gender} • ${age} Yrs</p>
+                    <button class="btn-primary" style="margin: 10px auto; font-size:0.8rem;" 
+                        onclick="openModal('${fullName}', '${u.faculty}', '${bio}', '${social}', '${u.id}', '${age}', '${u.gender}', '${picUrl}')">
                         View Profile
                     </button>
                 </div>`;
             });
         }
 
-        function openModal(name, fac, bioEnc, socEnc, id, age, gender) {
+        // --- 10. MODAL ---
+        function openModal(name, fac, bioEnc, socEnc, id, age, gender, picUrl) {
             document.getElementById('m-name').innerText = name;
-            document.getElementById('m-faculty').innerText = fac || "";
-            document.getElementById('m-details').innerText = `${age} • ${gender || 'Unknown'}`;
-            document.getElementById('m-bio').innerText = decodeURIComponent(bioEnc) || "No bio.";
+            document.getElementById('m-faculty').innerText = fac;
+            document.getElementById('m-details').innerText = `${age} Years • ${gender}`;
+            document.getElementById('m-bio').innerText = decodeURIComponent(bioEnc);
             document.getElementById('m-userid').value = id;
             
+            document.getElementById('m-pic').style.background = `url('${picUrl}') center/cover`;
+
             const soc = JSON.parse(decodeURIComponent(socEnc));
             document.getElementById('m-fb').href = soc.fb || '#';
             document.getElementById('m-wa').href = soc.wa ? `https://wa.me/${soc.wa}` : '#';
-            document.getElementById('m-ig').href = soc.ig ? `https://instagram.com/${soc.ig}` : '#';
+            document.getElementById('m-ig').href = soc.ig || '#';
             
             document.getElementById('profileModal').style.display = 'flex';
         }
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        
         async function sendCrushRequestFromModal() {
             const receiver = document.getElementById('m-userid').value;
             const { error } = await client.from('notifications').insert({
                 sender_id: currentUser.id, receiver_id: receiver, type: 'crush_request'
             });
-            if (error) showToast("Error sending request", "error");
-            else { showToast("Crush Request Sent! 💘", "success"); closeModal('profileModal'); }
+            if (error) showToast("Error sending request", 'error');
+            else { showToast("Crush Request Sent! 💘", 'success'); closeModal('profileModal'); }
         }
 
         function switchTab(section, el) {
