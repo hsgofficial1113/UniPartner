@@ -36,7 +36,7 @@
         .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; text-align: center; color: #555; z-index: 1; }
         .chat-area { display: none; flex: 1; flex-direction: column; background: #000; position: relative; z-index: 10; }
 
-        /* LIST */
+        /* INBOX LIST */
         .search-bar { padding: 20px; border-bottom: 1px solid var(--border); }
         .search-bar input { width: 100%; background: #1a1a1a; border: 1px solid #333; padding: 12px 15px; border-radius: 8px; color: white; outline: none; font-size: 1rem; }
         .users-scroll { flex: 1; overflow-y: auto; }
@@ -173,6 +173,7 @@
                     <div class="emoji-item" onclick="addEmoji('😍')">😍</div>
                     <div class="emoji-item" onclick="addEmoji('👍')">👍</div>
                     <div class="emoji-item" onclick="addEmoji('😊')">😊</div>
+                    <div class="emoji-item" onclick="addEmoji('😭')">😭</div>
                     <div class="emoji-item" onclick="addEmoji('🔥')">🔥</div>
                     <div class="emoji-item" onclick="addEmoji('💀')">💀</div>
                 </div>
@@ -193,7 +194,7 @@
 
         let currentUser = null;
         let activeChatUser = null;
-        let messageSubscription = null;
+        let mainChannel = null;
         let currentReplyId = null;
         let currentReplyContent = null;
         let userListCache = [];
@@ -218,7 +219,6 @@
             await client.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
         }
 
-        // --- 1. INBOX ---
         async function loadInbox() {
             const { data: msgs } = await client.from('messages')
                 .select('sender_id, receiver_id, content, created_at, is_read')
@@ -245,11 +245,10 @@
             grid.innerHTML = "";
             userListCache.forEach(u => {
                 const pic = u.avatar_url || `https://api.dicebear.com/9.x/avataaars/svg?seed=${u.first_name}`;
-                grid.innerHTML += `<div class="user-item ${u.unread > 0 ? 'has-unread' : ''} ${u.id === activeChatUser ? 'active-chat' : ''}" onclick="openChat('${u.id}')"><div class="u-avatar" style="background-image: url('${pic}')"></div><div class="u-info"><h4>${u.first_name} ${u.last_name} <span style="font-size:0.7rem; color:#666; font-weight:normal;">${formatTime(u.time)}</span></h4><p>${u.lastMsg}</p></div><div class="unread-badge">${u.unread}</div></div>`;
+                grid.innerHTML += `<div class="user-item ${u.unread > 0 ? 'has-unread' : ''} ${u.id === activeChatUser ? 'active-chat' : ''}" onclick="openChat('${u.id}')" id="inbox-${u.id}"><div class="u-avatar" style="background-image: url('${pic}')"></div><div class="u-info"><h4>${u.first_name} ${u.last_name} <span style="font-size:0.7rem; color:#666; font-weight:normal;">${formatTime(u.time)}</span></h4><p id="last-msg-${u.id}">${u.lastMsg}</p></div><div class="unread-badge">${u.unread}</div></div>`;
             });
         }
 
-        // --- 2. CHAT ---
         async function openChat(userId) {
             activeChatUser = userId;
             const user = userListCache.find(u => u.id === userId) || {};
@@ -265,9 +264,10 @@
             document.getElementById('chat-area').style.display = 'flex';
             if(window.innerWidth <= 768) { document.getElementById('chat-area').classList.add('active'); document.getElementById('back-btn').style.display = 'block'; }
             
-            await client.from('messages').update({ is_read: true }).eq('sender_id', userId).eq('receiver_id', currentUser.id);
+            // Mark Read
             const userIdx = userListCache.findIndex(u => u.id === userId);
             if(userIdx > -1) { userListCache[userIdx].unread = 0; renderUserList(); }
+            await client.from('messages').update({ is_read: true }).eq('sender_id', userId).eq('receiver_id', currentUser.id);
             
             loadMessages();
             subscribeToChat();
@@ -285,17 +285,16 @@
             }
         }
 
-        // --- TYPING BROADCAST LOGIC ---
         function handleTyping() {
-            if (!activeChatUser) return;
+            if (!mainChannel || !activeChatUser) return;
             if (!isTypingSent) {
                 isTypingSent = true;
-                client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: true } });
+                mainChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: true } });
             }
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
                 isTypingSent = false;
-                client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
+                mainChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
             }, 2000);
         }
 
@@ -304,7 +303,6 @@
             renderUserList();
             if(window.innerWidth > 768) { document.getElementById('chat-area').style.display = 'none'; document.getElementById('empty-state').style.display = 'flex'; }
             else { document.getElementById('chat-area').classList.remove('active'); }
-            if(messageSubscription) client.removeChannel(messageSubscription);
         }
 
         async function loadMessages() {
@@ -343,9 +341,7 @@
             input.value = ""; const replyId = currentReplyId; cancelReply();
             const { data, error } = await client.from('messages').insert({ content: text, sender_id: currentUser.id, receiver_id: activeChatUser, reply_to_id: replyId }).select();
             if(!error) document.getElementById(`msg-${tempId}`).id = `msg-${data[0].id}`;
-            
-            // Stop typing indicator on send
-            client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
+            if (mainChannel) mainChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
         }
 
         async function deleteMessage(msgId) {
@@ -355,37 +351,48 @@
         }
 
         function setupRealtime() {
-            client.channel('global-chat').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-                if (payload.eventType === 'INSERT') handleIncomingMessage(payload.new);
+            mainChannel = client.channel('global-chat')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+                if (payload.eventType === 'INSERT') {
+                    const msg = payload.new;
+                    if (activeChatUser && (msg.sender_id === activeChatUser || msg.sender_id === currentUser.id)) {
+                        // Already handled by optimistic UI or specialized chat channel
+                    } else {
+                        handleIncomingMessage(msg);
+                    }
+                }
                 if (payload.eventType === 'DELETE') document.getElementById(`msg-${payload.old.id}`)?.remove();
-                if (payload.eventType === 'UPDATE' && activeChatUser) loadMessages();
-            }).subscribe();
+                if (payload.eventType === 'UPDATE') {
+                    // Update read ticks locally
+                    const msgEl = document.getElementById(`msg-${payload.new.id}`);
+                    if (msgEl && payload.new.sender_id === currentUser.id && payload.new.is_read) {
+                        const statusTxt = msgEl.querySelector('.status-text');
+                        if (statusTxt) { statusTxt.innerText = 'Read'; statusTxt.className = 'status-text read'; }
+                    }
+                }
+            })
+            .on('broadcast', { event: 'typing' }, payload => {
+                if (payload.payload.userId === activeChatUser) {
+                    const statusTxt = document.getElementById('header-status-text');
+                    const typingInd = document.getElementById('typing-indicator');
+                    if (payload.payload.typing) { statusTxt.style.display = 'none'; typingInd.style.display = 'inline'; }
+                    else { statusTxt.style.display = 'inline'; typingInd.style.display = 'none'; }
+                }
+            })
+            .subscribe();
         }
 
         function subscribeToChat() {
-            if(messageSubscription) client.removeChannel(messageSubscription);
-            messageSubscription = client.channel(`chat-${activeChatUser}`)
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
-                    const msg = payload.new;
-                    if (msg.sender_id === activeChatUser) {
-                        let fullMsg = msg;
-                        if(msg.reply_to_id) { const { data } = await client.from('messages').select('content, sender_id').eq('id', msg.reply_to_id).single(); fullMsg.reply_to = data; }
-                        renderMessage(fullMsg);
-                        await client.from('messages').update({ is_read: true }).eq('id', msg.id);
-                    }
-                })
-                .on('broadcast', { event: 'typing' }, payload => {
-                    if (payload.payload.userId === activeChatUser) {
-                        const statusTxt = document.getElementById('header-status-text');
-                        const typingInd = document.getElementById('typing-indicator');
-                        if (payload.payload.typing) { statusTxt.style.display = 'none'; typingInd.style.display = 'inline'; }
-                        else { statusTxt.style.display = 'inline'; typingInd.style.display = 'none'; }
-                    }
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${activeChatUser}` }, payload => {
-                    updateHeaderStatus(payload.new.last_seen);
-                })
-                .subscribe();
+            // No need for separate channel if global handles INSERT correctly, but let's keep it for targeted logic
+            client.channel(`chat-${activeChatUser}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
+                const msg = payload.new;
+                if (msg.sender_id === activeChatUser) {
+                    let fullMsg = msg;
+                    if(msg.reply_to_id) { const { data } = await client.from('messages').select('content, sender_id').eq('id', msg.reply_to_id).single(); fullMsg.reply_to = data; }
+                    renderMessage(fullMsg);
+                    await client.from('messages').update({ is_read: true }).eq('id', msg.id);
+                }
+            }).subscribe();
         }
 
         async function handleIncomingMessage(msg) {
