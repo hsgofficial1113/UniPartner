@@ -6,7 +6,6 @@
     <title>UniPartner | Dashboard</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@400;600&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 
@@ -20,6 +19,7 @@
             --danger: #ff0055;
             --success: #00ff88;
             --warning: #ffb700;
+            --gold: #FFD700;
             --text-main: #ffffff;
             --text-muted: #888;
             --border: #333;
@@ -51,7 +51,47 @@
         /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 0; overflow-y: auto; position: relative; padding-bottom: 80px; }
         
-        /* HEADER */
+        /* HEADER (NOTIFICATIONS) */
+        .dashboard-top-bar {
+            position: absolute; top: 20px; right: 20px; z-index: 50;
+            display: flex; gap: 15px; align-items: center;
+        }
+        .notif-wrapper { position: relative; cursor: pointer; }
+        .notif-icon { 
+            font-size: 1.5rem; color: #fff; background: rgba(0,0,0,0.5); 
+            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 1px solid #333; transition: 0.3s;
+        }
+        .notif-icon:hover { color: var(--accent); border-color: var(--accent); }
+        .badge {
+            position: absolute; top: -2px; right: -2px; background: #ff0055;
+            color: white; font-size: 0.7rem; width: 18px; height: 18px;
+            border-radius: 50%; display: none; align-items: center; justify-content: center;
+            font-weight: bold; border: 2px solid #000;
+        }
+        
+        /* NOTIFICATION DROPDOWN */
+        .notif-dropdown {
+            position: absolute; top: 55px; right: 0; width: 320px;
+            background: #111; border: 1px solid #333; border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9); padding: 5px;
+            display: none; flex-direction: column; gap: 2px; z-index: 100;
+            max-height: 400px; overflow-y: auto;
+        }
+        .notif-dropdown.show { display: flex; }
+        
+        .notif-item {
+            padding: 15px; border-radius: 8px; background: #1a1a1a; 
+            font-size: 0.85rem; display: flex; align-items: center; gap: 12px;
+            transition: 0.2s; border-left: 3px solid transparent; cursor: pointer;
+            margin-bottom: 2px; color: #ddd;
+        }
+        .notif-item:hover { background: #252525; }
+        .notif-item.crush { border-left-color: #ff0055; }
+        .notif-item.msg { border-left-color: var(--gold); }
+        .notif-item.unread { background: rgba(188, 19, 254, 0.1); }
+
+        /* PROFILE HEADER */
         .profile-header {
             position: relative; background: linear-gradient(135deg, #1a0b2e, #000);
             border-bottom: 1px solid var(--border); padding-bottom: 2rem;
@@ -63,19 +103,20 @@
         
         .profile-container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; position: relative; display: flex; flex-direction: column; }
 
-        /* AVATAR */
         .profile-pic-wrapper {
             margin-top: -85px; align-self: flex-start;
             width: 170px; height: 170px; border-radius: 50%;
             background: #000; padding: 5px; z-index: 5; position: relative;
         }
+        
         .profile-pic {
             width: 100%; height: 100%; border-radius: 50%;
             background: #222; background-size: cover; background-position: center;
             display: flex; align-items: center; justify-content: center;
             font-size: 3rem; color: var(--accent); border: 2px solid var(--accent);
-            overflow: hidden;
+            overflow: hidden; font-weight: bold; text-transform: uppercase;
         }
+
         .edit-avatar-btn {
             position: absolute; bottom: 5px; right: 10px;
             background: var(--highlight); color: #000;
@@ -89,72 +130,91 @@
         .profile-names h1 { font-size: 2.5rem; font-weight: 800; font-family: var(--font-head); margin-bottom: 5px; }
         .profile-names p { color: var(--text-muted); font-size: 1.1rem; }
 
-        /* NOTIFICATION BELL & BADGE */
-        .notification-wrapper { position: fixed; top: 20px; right: 30px; z-index: 100; cursor: pointer; }
-        .bell-icon { font-size: 1.8rem; color: white; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: 0.3s; }
-        .bell-icon:hover { color: var(--accent); }
-        
-        .badge {
-            position: absolute; top: -5px; right: -5px;
-            background: var(--danger); color: white;
-            font-size: 0.75rem; font-weight: bold;
-            width: 20px; height: 20px; border-radius: 50%;
-            display: none; align-items: center; justify-content: center;
-            border: 2px solid #000;
-        }
-
-        .notif-dropdown {
-            position: absolute; top: 40px; right: 0; width: 300px;
-            background: #111; border: 1px solid var(--border);
-            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
-            display: none; flex-direction: column; overflow: hidden;
-        }
-        .notif-dropdown.show { display: flex; animation: slideDown 0.3s ease; }
-        .notif-header { padding: 15px; background: rgba(188,19,254,0.1); font-weight: bold; color: var(--accent); border-bottom: 1px solid var(--border); }
-        .notif-item { padding: 15px; border-bottom: 1px solid #222; font-size: 0.9rem; color: #ddd; transition: 0.2s; }
-        .notif-item:hover { background: rgba(255,255,255,0.05); }
-        .notif-empty { padding: 20px; text-align: center; color: #666; font-style: italic; }
-
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* STATS IN PROFILE */
+        .stats-row { display: flex; gap: 20px; margin-top: 10px; }
+        .mini-stat { background: #111; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #333; color: #aaa; display: flex; align-items: center; gap: 8px; }
+        .mini-stat strong { color: white; font-size: 1rem; }
 
         /* CONTAINERS & CARDS */
         .view-mode-container, .edit-mode-container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; animation: fadeIn 0.5s ease; }
         .hidden { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .intro-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .intro-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2rem; margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 20px;
+            overflow: hidden; /* Fix content spill */
+        }
         .intro-header { font-family: var(--font-head); font-size: 1.4rem; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
-        .pro-note { background: rgba(255, 183, 0, 0.1); border-left: 4px solid var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 25px; color: #ddd; font-size: 0.9rem; line-height: 1.5; }
-        .pro-note strong { color: var(--warning); }
-        .bio-section { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; font-style: italic; color: #ddd; margin-bottom: 25px; line-height: 1.6; border-left: 3px solid var(--highlight); }
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .detail-item { display: flex; align-items: center; gap: 12px; color: #ccc; font-size: 1rem; }
-        .detail-item i { color: var(--text-muted); width: 25px; text-align: center; font-size: 1.2rem; }
-        .detail-item span { font-weight: 600; color: white; }
+
+        /* --- FIXED BIO SECTION --- */
+        .bio-section {
+            background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px;
+            font-style: italic; color: #ddd; margin-bottom: 30px; line-height: 1.6;
+            border-left: 3px solid var(--highlight);
+            word-wrap: break-word; /* Prevents long text from breaking layout */
+            overflow-wrap: break-word;
+            width: 100%;
+        }
+
+        /* STATUS BADGES */
+        .status-tag {
+            font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; 
+            font-weight: bold; text-transform: uppercase; margin-bottom: 8px; display: inline-block;
+        }
+        .status-tag.green { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid #00ff88; }
+        .status-tag.red { background: rgba(255, 0, 85, 0.1); color: #ff0055; border: 1px solid #ff0055; }
+        .status-tag.orange { background: rgba(255, 183, 0, 0.1); color: #ffb700; border: 1px solid #ffb700; }
 
         /* FORMS & BUTTONS */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .full-width { grid-column: span 2; }
         label { font-size: 0.75rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 8px; display: block; }
-        input, select, textarea { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border); background: #1a1a20; color: white; font-size: 1rem; transition: 0.3s; }
+        input, select, textarea {
+            width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border);
+            background: #1a1a20; color: white; font-size: 1rem; transition: 0.3s;
+        }
         input:focus, select:focus { outline: none; border-color: var(--accent); }
         input[readonly] { background: #0a0a0a; color: #555; cursor: not-allowed; border-color: #222; }
 
-        .btn-primary { background: var(--accent); color: white; padding: 12px 25px; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-primary { 
+            background: var(--accent); color: white; padding: 12px 25px; border: none; border-radius: 50px; 
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(188, 19, 254, 0.4); }
         .btn-secondary { background: transparent; color: #aaa; border: 1px solid #555; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; }
         .btn-danger { background: rgba(255, 0, 85, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
 
-        /* SOCIALS & SEARCH */
+        /* ACTION ROW (FIND SECTION) */
+        .action-row { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .btn-icon {
+            width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+            transition: 0.2s; color: white;
+        }
+        .btn-crush { background: rgba(255, 0, 85, 0.1); color: #ff0055; border: 1px solid #ff0055; }
+        .btn-crush:hover { background: #ff0055; color: white; transform: scale(1.1); }
+        
+        .btn-msg { background: rgba(0, 200, 255, 0.1); color: #00ccff; border: 1px solid #00ccff; }
+        .btn-msg:hover { background: #00ccff; color: black; transform: scale(1.1); }
+
+        /* SOCIALS */
         .social-display { display: flex; gap: 15px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #333; }
         .social-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #222; transition: 0.3s; text-decoration: none; }
         .social-btn:hover { transform: translateY(-3px); }
         .fb { color: #1877F2; } .wa { color: #25D366; } .ig { color: #E4405F; }
 
+        /* SEARCH GRID */
         .filter-container { max-width: 900px; margin: 2rem auto; padding: 1.5rem; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; background: rgba(188, 19, 254, 0.05); border-radius: 16px; border: 1px solid var(--border); }
-        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
-        .user-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; }
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+        .user-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; transition: 0.3s; position: relative; overflow: hidden; }
+        .user-card:hover { transform: translateY(-5px); border-color: var(--accent); }
 
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .detail-item { display: flex; align-items: center; gap: 12px; color: #ccc; font-size: 1rem; }
+        .detail-item i { color: var(--text-muted); width: 25px; text-align: center; font-size: 1.2rem; }
+        
         /* MODALS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: #111; width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--accent); padding: 2rem; position: relative; animation: popIn 0.3s ease; }
@@ -176,7 +236,7 @@
             .nav-item { margin: 0; padding: 10px; font-size: 1.4rem; border: none; }
             .nav-item.active { background: transparent; color: var(--accent); border: none; }
             .main-content { padding-bottom: 85px; }
-            .notification-wrapper { top: 15px; right: 15px; }
+            .dashboard-top-bar { top: 15px; right: 15px; }
         }
     </style>
 </head>
@@ -184,14 +244,12 @@
     
     <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-    <div class="notification-wrapper">
-        <i class="fa-regular fa-bell bell-icon" onclick="toggleNotifDropdown()"></i>
-        <div class="badge" id="notif-badge">0</div>
-        
-        <div class="notif-dropdown" id="notif-dropdown">
-            <div class="notif-header">Notifications</div>
-            <div id="notif-list">
-                <div class="notif-empty">No new notifications</div>
+    <div class="dashboard-top-bar">
+        <div class="notif-wrapper" onclick="toggleNotif()">
+            <div class="notif-icon"><i class="fa-regular fa-bell"></i></div>
+            <div class="badge" id="notif-badge">0</div>
+            <div class="notif-dropdown" id="notif-list">
+                <div style="padding:20px; color:#666; text-align:center;">Loading alerts...</div>
             </div>
         </div>
     </div>
@@ -212,15 +270,25 @@
                 <div class="cover-photo"></div>
                 <div class="profile-container">
                     <div class="profile-pic-wrapper">
-                        <div class="profile-pic" id="profile-pic-display"><i class="fa-solid fa-user"></i></div>
-                        <div class="edit-avatar-btn" onclick="openAvatarStudio()"><i class="fa-solid fa-palette"></i></div>
+                        <div class="profile-pic" id="profile-pic-display">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="edit-avatar-btn" onclick="openAvatarStudio()">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
                     </div>
                     <div class="profile-info-row">
                         <div class="profile-names">
                             <h1 id="disp-name">Loading...</h1>
                             <p id="disp-reg-header">Student</p>
+                            <div class="stats-row">
+                                <div class="mini-stat"><i class="fa-solid fa-heart" style="color:#ff0055"></i> <strong id="stat-crushes">0</strong> Crushes</div>
+                                <div class="mini-stat"><i class="fa-regular fa-comments" style="color:#00ccff"></i> <strong id="stat-msgs">0</strong> Msgs</div>
+                            </div>
                         </div>
-                        <button id="btn-edit-toggle" class="btn-primary" onclick="toggleEditMode(true)"><i class="fa-solid fa-pen-to-square"></i> Edit Profile</button>
+                        <button id="btn-edit-toggle" class="btn-primary" onclick="toggleEditMode(true)">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                        </button>
                     </div>
                 </div>
             </div>
@@ -248,22 +316,20 @@
             <div id="edit-mode-container" class="edit-mode-container hidden">
                 <div class="intro-card" style="border-color: var(--accent);">
                     <div class="intro-header">Update Details</div>
-                    <div class="pro-note">
-    <i class="fa-solid fa-circle-info"></i> <strong>Profile Photo Policy:</strong><br>
-    To keep this platform 100% free and fast, we use smart avatars. You can customize yours by clicking the <strong>Palette Icon</strong> on your photo.<br><br>
-    Please link your <strong>Instagram</strong> or <strong>Facebook</strong> below so others can see your real photos!
-</div>
+                    <div class="pro-note"><i class="fa-solid fa-circle-info"></i> <strong>Customize Your Look:</strong> Click the Palette Icon on your photo.</div>
                     <form id="updateForm">
                         <div class="form-grid">
-                            <div class="form-group"><label>First Name (Locked)</label><input type="text" id="p-fname" readonly></div>
-                            <div class="form-group"><label>Last Name (Locked)</label><input type="text" id="p-lname" readonly></div>
-                            <div class="form-group full-width"><label>Reg No (Locked)</label><input type="text" id="p-regno" readonly></div>
-                            <div class="form-group full-width"><label>University (Locked)</label><input type="text" id="p-uni" readonly></div>
-                            <div class="form-group full-width"><label>Faculty (Locked)</label><input type="text" id="p-fac" readonly></div>
-                            <div class="form-group"><label>Birth Date (Locked)</label><input type="date" id="p-dob" readonly></div>
-                            <div class="form-group"><label>Gender (Locked)</label><input type="text" id="p-gender" readonly></div>
-                            <div class="form-group"><label>Relationship Status</label><select id="p-status"><option>Single</option><option>In a Relationship</option><option>It's Complicated</option></select></div>
-                            <div class="form-group full-width"><label>Bio</label><textarea id="p-bio" rows="5"></textarea></div>
+                            <div class="form-group"><label>First Name</label><input type="text" id="p-fname" readonly></div>
+                            <div class="form-group"><label>Last Name</label><input type="text" id="p-lname" readonly></div>
+                            <div class="form-group full-width"><label>Reg No</label><input type="text" id="p-regno" readonly></div>
+                            <div class="form-group full-width"><label>University</label><input type="text" id="p-uni" readonly></div>
+                            <div class="form-group full-width"><label>Faculty</label><input type="text" id="p-fac" readonly></div>
+                            <div class="form-group"><label>Birth Date</label><input type="date" id="p-dob" readonly></div>
+                            <div class="form-group"><label>Gender</label><input type="text" id="p-gender" readonly></div>
+                            <div class="form-group"><label>Relationship Status</label>
+                                <select id="p-status"><option>Single</option><option>In a Relationship</option><option>It's Complicated</option></select>
+                            </div>
+                            <div class="form-group full-width"><label>Bio Description</label><textarea id="p-bio" rows="5" style="resize:vertical; min-height:80px;"></textarea></div>
                             <div class="form-group full-width"><label>Social Links</label>
                                 <input type="text" id="p-fb" placeholder="Facebook URL" style="margin-bottom:10px;">
                                 <input type="text" id="p-wa" placeholder="WhatsApp Number" style="margin-bottom:10px;">
@@ -276,7 +342,6 @@
                         </div>
                     </form>
                     <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #333;">
-                        <h4 style="color:var(--danger); margin-bottom:10px;">Danger Zone</h4>
                         <button class="btn-danger" onclick="openDeleteModal()">Delete My Account</button>
                     </div>
                 </div>
@@ -285,6 +350,7 @@
 
         <div id="search-section" style="display: none;">
             <div style="padding-top: 2rem;">
+                <h2 style="text-align:center; font-family:'Playfair Display',serif; margin-bottom:20px;">Find Your Match</h2>
                 <div class="filter-container">
                     <input type="text" id="search-name" placeholder="Name..." style="background:#000;">
                     <select id="filter-uni"><option value="">All Unis</option><option value="University of Peradeniya">UOP</option><option value="University of Colombo">UOC</option><option value="University of Moratuwa">UOM</option></select>
@@ -293,7 +359,9 @@
                     <select id="filter-age"><option value="">Any Age</option><option value="18-21">18 - 21</option><option value="22-24">22 - 24</option><option value="25+">25+</option></select>
                     <button class="btn-primary" style="width:100%; justify-content:center;" onclick="performSearch()">Search</button>
                 </div>
-                <div class="user-grid" id="results-grid"><p style="color:#777; grid-column:1/-1; text-align:center;">Apply filters to find students...</p></div>
+                <div class="user-grid" id="results-grid">
+                    <p style="color:#777; grid-column:1/-1; text-align:center;">Apply filters to find students...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -303,12 +371,10 @@
             <span class="close-modal" onclick="closeModal('avatarModal')">&times;</span>
             <h2 style="text-align:center; color:white; margin-bottom:20px;">Avatar Studio</h2>
             <div id="studio-preview" style="width:150px; height:150px; border-radius:50%; background:#222; margin:0 auto 20px; border:2px solid var(--accent); background-size:cover;"></div>
-            <div class="form-group">
-                <label>Choose Style</label>
+            <div class="form-group"><label>Choose Style</label>
                 <select id="studio-style" onchange="updateStudioPreview()"><option value="initials">Initials</option><option value="avataaars">Cartoon</option><option value="bottts">Robots</option><option value="lorelei">Anime</option></select>
             </div>
-            <div class="form-group">
-                <label>Magic Seed (Type anything)</label>
+            <div class="form-group"><label>Magic Seed</label>
                 <div style="display:flex; gap:10px;"><input type="text" id="studio-seed" placeholder="Type name..." oninput="updateStudioPreview()"><button class="btn-secondary" onclick="randomizeSeed()" style="padding:10px;"><i class="fa-solid fa-dice"></i></button></div>
             </div>
             <button class="btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="saveAvatar()">Use This Avatar</button>
@@ -322,7 +388,8 @@
                 <div id="m-pic" style="width:100%; height:100%; background:#222; background-size:cover;"></div>
             </div>
             <h2 id="m-name" style="text-align:center; color:white;">User</h2>
-            <p id="m-faculty" style="text-align:center; color:var(--highlight);">Faculty</p>
+            <div style="text-align:center;"><span id="m-status-badge" class="status-tag green">Single</span></div>
+            <p id="m-faculty" style="text-align:center; color:var(--highlight); margin-top:5px;">Faculty</p>
             <p id="m-details" style="text-align:center; color:#777; font-size:0.8rem; margin-bottom:10px;">--</p>
             <div style="padding: 20px 0;">
                 <p id="m-bio" style="color:#ccc; background:#1a1a1a; padding:15px; border-radius:8px;">Bio...</p>
@@ -332,7 +399,10 @@
                     <a href="#" id="m-ig" target="_blank" style="color:white;"><i class="fa-brands fa-instagram"></i></a>
                 </div>
                 <input type="hidden" id="m-userid">
-                <button onclick="sendCrushRequestFromModal()" class="btn-primary" style="width:100%; margin-top:20px; justify-content:center;">Send Crush Request 💘</button>
+                <div class="action-row" style="margin-top:20px;">
+                    <button class="btn-icon btn-crush" onclick="sendCrushRequestFromModal()" title="Send Crush" style="width:50px; height:50px; font-size:1.2rem;"><i class="fa-solid fa-heart"></i></button>
+                    <button class="btn-icon btn-msg" onclick="sendMessageFromModal()" title="Send Message" style="width:50px; height:50px; font-size:1.2rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -341,14 +411,12 @@
         <div class="modal-content" style="border-color: var(--danger);">
             <span class="close-modal" onclick="closeModal('deleteModal')">&times;</span>
             <h2 style="text-align:center; color:var(--danger);">Delete Account?</h2>
-            <p style="text-align:center; color:#ccc; margin: 15px 0;">Type <strong>DELETE</strong> below to confirm.</p>
             <input type="text" id="delete-confirm-input" class="delete-input" placeholder="DELETE" style="text-align:center; font-weight:bold; letter-spacing:2px; border-color:var(--danger); width:100%; padding:10px; margin: 15px 0; background:#000; color:white; border:1px solid var(--danger);">
             <button onclick="confirmDeleteAccount()" class="btn-danger" style="width:100%; margin-top:10px;">Confirm Deletion</button>
         </div>
     </div>
 
     <script>
-        // --- TOAST ---
         function showToast(msg, type='success') {
             const box = document.getElementById('toast-container');
             const div = document.createElement('div');
@@ -360,124 +428,19 @@
         style.innerHTML = `@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}} @keyframes fadeOut{to{opacity:0;transform:translateY(-10px)}}`;
         document.head.appendChild(style);
 
-        // --- CONFIG ---
         const SUPABASE_URL = 'https://qfphldkagncbdayxbwkm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcGhsZGthZ25jYmRheXhid2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjEwNDUsImV4cCI6MjA4NDg5NzA0NX0.1wFaOihsBx5dMkVzHviqDEwAKd9EDnNIr1WqpPVgJLY';
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let currentUser = null;
 
-        // --- STARTUP ---
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await client.auth.getSession();
             if (!session) { window.location.href = 'auth.html'; return; }
             currentUser = session.user;
             loadProfile();
-            listenForNotifications(); // START LISTENER
-            loadNotifications(); // LOAD EXISTING
+            loadNotifications();
+            listenRealtime();
         });
-
-       // --- NOTIFICATIONS ---
-        function toggleNotifDropdown() {
-            const dropdown = document.getElementById('notif-dropdown');
-            dropdown.classList.toggle('show');
-
-            // NEW: If opening the menu, mark items as read in DB
-            if (dropdown.classList.contains('show')) {
-                markNotificationsRead();
-            }
-        }
-
-        async function markNotificationsRead() {
-            // 1. Visually hide the red badge immediately
-            document.getElementById('notif-badge').style.display = 'none';
-
-            // 2. Update database in the background
-            await client
-                .from('notifications')
-                .update({ is_read: true })
-                .eq('receiver_id', currentUser.id)
-                .eq('is_read', false); 
-        }
-
-        async function loadNotifications() {
-            // Fetch notifications AND the sender's name
-            const { data: notifs, error } = await client
-                .from('notifications')
-                .select(`
-                    *,
-                    sender:sender_id (first_name, last_name)
-                `)
-                .eq('receiver_id', currentUser.id)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error("Notification Error:", error);
-                // If the error is about "sender", it means the Foreign Key is missing (Run Step 1 SQL)
-                return;
-            }
-
-            const badge = document.getElementById('notif-badge');
-            const list = document.getElementById('notif-list');
-            
-            // Count UNREAD items for the Red Badge
-            const unreadCount = notifs ? notifs.filter(n => !n.is_read).length : 0;
-            
-            if(unreadCount > 0) {
-                badge.innerText = unreadCount;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-
-            // Render the List (Both Old and New)
-            if(notifs && notifs.length > 0) {
-                list.innerHTML = '';
-                notifs.forEach(n => {
-                    const senderName = n.sender ? `${n.sender.first_name} ${n.sender.last_name}` : "Unknown Student";
-                    
-                    // Style: Darker background if read, Brighter if unread
-                    const bgStyle = n.is_read ? '' : 'background: rgba(188, 19, 254, 0.1); border-left: 3px solid #bc13fe;';
-                    const iconColor = n.is_read ? '#666' : '#bc13fe';
-
-                    list.innerHTML += `
-                    <div class="notif-item" style="${bgStyle}">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <i class="fa-solid fa-heart" style="color:${iconColor};"></i>
-                            <div>
-                                <div style="color:white; font-weight:bold; font-size:0.9rem;">${senderName}</div>
-                                <div style="font-size:0.75rem; color:#aaa;">Sent you a crush request!</div>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            } else {
-                list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
-            }
-        }
-
-        function listenForNotifications() {
-            client
-                .channel('public:notifications')
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'notifications', 
-                    filter: `receiver_id=eq.${currentUser.id}` 
-                }, () => {
-                    showToast("💖 New Crush Request!", "success");
-                    loadNotifications(); // Reload to update badge
-                })
-                .subscribe();
-        }
-        
-        // --- PROFILE LOGIC ---
-        function toggleEditMode(showEdit) {
-            const view = document.getElementById('view-mode-container');
-            const edit = document.getElementById('edit-mode-container');
-            const btn = document.getElementById('btn-edit-toggle');
-            if (showEdit) { view.classList.add('hidden'); edit.classList.remove('hidden'); btn.classList.add('hidden'); }
-            else { view.classList.remove('hidden'); edit.classList.add('hidden'); btn.classList.remove('hidden'); }
-        }
 
         async function loadProfile() {
             let { data } = await client.from('profiles').select('*').eq('email', currentUser.email).single();
@@ -485,26 +448,21 @@
 
             document.getElementById('disp-name').innerText = `${data.first_name} ${data.last_name}`;
             document.getElementById('disp-reg-header').innerText = data.reg_no;
-            document.getElementById('disp-bio').innerText = data.bio || "No bio description added yet.";
+            document.getElementById('disp-bio').innerText = data.bio || "No bio yet.";
             document.getElementById('disp-uni').innerText = data.university;
             document.getElementById('disp-fac').innerText = data.faculty;
             document.getElementById('disp-reg').innerText = data.reg_no;
             document.getElementById('disp-gender').innerText = data.gender;
-            document.getElementById('disp-status').innerText = data.status;
+            document.getElementById('disp-status').innerText = data.status || 'Single';
             
             if (data.birthdate) {
                 const age = Math.floor((new Date() - new Date(data.birthdate)) / 31557600000);
                 document.getElementById('disp-age').innerText = `${age} Years`;
             } else { document.getElementById('disp-age').innerText = "--"; }
 
-            const soc = data.socials || {};
-            document.getElementById('link-fb').href = soc.fb || '#';
-            document.getElementById('link-wa').href = soc.wa ? `https://wa.me/${soc.wa}` : '#';
-            document.getElementById('link-ig').href = soc.ig || '#';
-
             const picContainer = document.getElementById('profile-pic-display');
             const picUrl = data.avatar_url || `https://api.dicebear.com/9.x/initials/svg?seed=${data.first_name}&backgroundColor=bc13fe`;
-            picContainer.style.background = `url('${picUrl}') center/cover`;
+            picContainer.style.background = `url("${picUrl}") center/cover`;
             picContainer.innerText = "";
 
             document.getElementById('p-fname').value = data.first_name;
@@ -516,64 +474,80 @@
             document.getElementById('p-gender').value = data.gender;
             document.getElementById('p-status').value = data.status || 'Single';
             document.getElementById('p-bio').value = data.bio || '';
+            const soc = data.socials || {};
             document.getElementById('p-fb').value = soc.fb || '';
             document.getElementById('p-wa').value = soc.wa || '';
             document.getElementById('p-ig').value = soc.ig || '';
         }
 
-        // --- AVATAR STUDIO ---
-        function openAvatarStudio() {
-            const name = document.getElementById('p-fname').value;
-            document.getElementById('studio-seed').value = name;
-            updateStudioPreview();
-            document.getElementById('avatarModal').style.display = 'flex';
-        }
-        function updateStudioPreview() {
-            const style = document.getElementById('studio-style').value;
-            const seed = document.getElementById('studio-seed').value || 'User';
-            const url = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
-            document.getElementById('studio-preview').style.background = `url("${url}") center/cover`;
-        }
-        function randomizeSeed() {
-            document.getElementById('studio-seed').value = Math.random().toString(36).substring(7);
-            updateStudioPreview();
-        }
-        async function saveAvatar() {
-            const style = document.getElementById('studio-style').value;
-            const seed = document.getElementById('studio-seed').value || 'User';
-            const finalUrl = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=bc13fe`;
-            const { error } = await client.from('profiles').update({ avatar_url: finalUrl }).eq('email', currentUser.email);
-            if(error) showToast("Error: " + error.message, 'error');
-            else { showToast("Avatar Updated!", 'success'); loadProfile(); closeModal('avatarModal'); }
+        async function loadNotifications() {
+            const { data: alerts } = await client.from('notifications')
+                .select(`id, type, content, created_at, sender_id, sender:sender_id(first_name)`)
+                .eq('receiver_id', currentUser.id)
+                .eq('is_read', false)
+                .order('created_at', { ascending: false });
+
+            const { data: msgs } = await client.from('messages')
+                .select(`id, content, created_at, sender_id, sender:sender_id(first_name)`)
+                .eq('receiver_id', currentUser.id)
+                .eq('is_read', false)
+                .order('created_at', { ascending: false });
+
+            document.getElementById('stat-crushes').innerText = alerts ? alerts.length : 0;
+            document.getElementById('stat-msgs').innerText = msgs ? msgs.length : 0;
+
+            const combined = [];
+            if(alerts) alerts.forEach(a => combined.push({ uniqueId: a.id, type: a.type, senderId: a.sender_id, senderName: a.sender ? a.sender.first_name : "Someone", content: a.content || (a.type==='crush'?'Sent Crush Request':'Secret'), createdAt: a.created_at, isMsg: false }));
+            if(msgs) msgs.forEach(m => combined.push({ uniqueId: m.id, type: 'message', senderId: m.sender_id, senderName: m.sender ? m.sender.first_name : "User", content: "Sent a message", createdAt: m.created_at, isMsg: true }));
+            combined.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            
+            badge.innerText = combined.length;
+            badge.style.display = combined.length > 0 ? 'flex' : 'none';
+
+            list.innerHTML = '';
+            if(combined.length === 0) list.innerHTML = '<div style="padding:20px; color:#666; text-align:center;">No new alerts</div>';
+            else {
+                combined.forEach(n => {
+                    let icon, text, styleClass;
+                    if(n.isMsg) {
+                        icon = '<i class="fa-regular fa-comment-dots" style="color:var(--gold)"></i>';
+                        text = `<b>${n.senderName}</b> sent a message`;
+                        styleClass = 'msg';
+                    } else if(n.type === 'crush') {
+                        icon = '<i class="fa-solid fa-heart" style="color:#ff0055"></i>';
+                        text = `<b>${n.senderName}</b> sent a Crush Request!`;
+                        styleClass = 'crush';
+                    } else {
+                        icon = '<i class="fa-solid fa-user-secret" style="color:#ff0055"></i>';
+                        text = `<b>Secret:</b> ${n.content}`;
+                        styleClass = 'crush';
+                    }
+                    list.innerHTML += `<div class="notif-item ${styleClass} unread" onclick="markAsRead('${n.uniqueId}', '${n.senderId}', ${n.isMsg})">${icon} <span>${text}</span></div>`;
+                });
+            }
         }
 
-        // --- UPDATE & DELETE ---
-        async function updateProfile() {
-            const updates = {
-                status: document.getElementById('p-status').value,
-                bio: document.getElementById('p-bio').value,
-                socials: { fb: document.getElementById('p-fb').value, wa: document.getElementById('p-wa').value, ig: document.getElementById('p-ig').value }
-            };
-            const { error } = await client.from('profiles').update(updates).eq('email', currentUser.email);
-            if (error) showToast(error.message, 'error');
-            else { showToast("Profile Updated!", 'success'); loadProfile(); toggleEditMode(false); }
-        }
-        function openDeleteModal() { document.getElementById('deleteModal').style.display = 'flex'; }
-        async function confirmDeleteAccount() {
-            const input = document.getElementById('delete-confirm-input').value;
-            if(input !== "DELETE") { showToast("Type DELETE to confirm.", 'error'); return; }
-            const { error } = await client.from('profiles').delete().eq('email', currentUser.email);
-            if(error) showToast(error.message, 'error');
-            else { showToast("Account Deleted. Goodbye!", 'success'); setTimeout(async()=>{ await client.auth.signOut(); window.location.href='auth.html'; }, 1500); }
+        async function markAsRead(itemId, senderId, isMsg) {
+            if (isMsg) {
+                openChat(senderId);
+            } else {
+                const { error } = await client.from('notifications').update({ is_read: true }).eq('id', itemId);
+                if(!error) { loadNotifications(); if(senderId) openChat(senderId); }
+            }
         }
 
-        // --- SEARCH ---
+        function toggleNotif() { document.getElementById('notif-list').classList.toggle('show'); }
+
         async function performSearch() {
             const name = document.getElementById('search-name').value;
             const uni = document.getElementById('filter-uni').value;
             const fac = document.getElementById('filter-faculty').value;
             const gender = document.getElementById('filter-gender').value;
             const ageRange = document.getElementById('filter-age').value;
+
             const grid = document.getElementById('results-grid');
             grid.innerHTML = "<p style='color:#ccc; text-align:center;'>Searching...</p>";
 
@@ -582,16 +556,14 @@
             if (uni) query = query.eq('university', uni);
             if (fac) query = query.eq('faculty', fac);
             if (gender) query = query.eq('gender', gender);
+
             if (ageRange) {
-                const today = new Date();
-                const year = today.getFullYear();
-                let minAge = 0, maxAge = 100;
-                if (ageRange === '18-21') { minAge = 18; maxAge = 21; }
-                else if (ageRange === '22-24') { minAge = 22; maxAge = 24; }
-                else if (ageRange === '25+') { minAge = 25; maxAge = 100; }
-                const maxBirthDate = new Date(year - minAge, today.getMonth(), today.getDate()).toISOString();
-                const minBirthDate = new Date(year - maxAge - 1, today.getMonth(), today.getDate()).toISOString();
-                query = query.lte('birthdate', maxBirthDate).gte('birthdate', minBirthDate);
+                const year = new Date().getFullYear();
+                let minAge=0, maxAge=100;
+                if(ageRange==='18-21'){minAge=18;maxAge=21;} else if(ageRange==='22-24'){minAge=22;maxAge=24;} else if(ageRange==='25+'){minAge=25;maxAge=100;}
+                const maxBD = new Date(year - minAge, 0, 1).toISOString();
+                const minBD = new Date(year - maxAge - 1, 0, 1).toISOString();
+                query = query.lte('birthdate', maxBD).gte('birthdate', minBD);
             }
 
             const { data: users, error } = await query;
@@ -600,34 +572,110 @@
             grid.innerHTML = "";
             users.forEach(u => {
                 const fullName = `${u.first_name} ${u.last_name}`;
-                let age = "??";
-                if(u.birthdate) age = Math.floor((new Date() - new Date(u.birthdate)) / 31557600000);
+                let age = u.birthdate ? Math.floor((new Date() - new Date(u.birthdate)) / 31557600000) : "??";
+                const picUrl = u.avatar_url || `https://api.dicebear.com/9.x/initials/svg?seed=${u.first_name}&backgroundColor=bc13fe`;
                 const bio = encodeURIComponent(u.bio || "");
                 const social = encodeURIComponent(JSON.stringify(u.socials || {}));
-                const picUrl = u.avatar_url || `https://api.dicebear.com/9.x/initials/svg?seed=${u.first_name}&backgroundColor=bc13fe`;
+                
+                let statusBadge = '';
+                const st = u.status || 'Single';
+                if(st === 'Single') statusBadge = '<span class="status-tag green">Single</span>';
+                else if(st === 'In a Relationship') statusBadge = '<span class="status-tag red">Taken</span>';
+                else statusBadge = '<span class="status-tag orange">Complicated</span>';
 
                 grid.innerHTML += `
                 <div class="user-card">
                     <div style="width:80px; height:80px; border-radius:50%; background:url('${picUrl}') center/cover; margin:0 auto 10px; border:2px solid var(--accent);"></div>
                     <h3>${fullName}</h3>
-                    <p style="margin-bottom:5px;">${u.faculty}</p>
+                    ${statusBadge}
+                    <p style="margin-bottom:5px; margin-top:5px;">${u.faculty}</p>
                     <p style="font-size:0.75rem; color:#888;">${u.gender} • ${age} Yrs</p>
                     <button class="btn-primary" style="margin: 10px auto; font-size:0.8rem;" 
-                        onclick="openModal('${fullName}', '${u.faculty}', '${bio}', '${social}', '${u.id}', '${age}', '${u.gender}', '${picUrl}')">
+                        onclick="openModal('${fullName}', '${u.faculty}', '${bio}', '${social}', '${u.id}', '${age}', '${u.gender}', '${picUrl}', '${st}')">
                         View Profile
                     </button>
+                    <div class="action-row">
+                        <button class="btn-icon btn-crush" onclick="sendCrush('${u.id}')" title="Send Crush"><i class="fa-solid fa-heart"></i></button>
+                        <button class="btn-icon btn-msg" onclick="openChat('${u.id}')" title="Message"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>`;
             });
         }
 
-        // --- HELPERS ---
-        function openModal(name, fac, bioEnc, socEnc, id, age, gender, picUrl) {
+        async function sendCrush(targetId) {
+            const { error } = await client.from('notifications').insert({ sender_id: currentUser.id, receiver_id: targetId, type: 'crush' });
+            if(error) showToast("Error sending.", 'error');
+            else showToast("Crush Sent! 💘", 'success');
+        }
+
+        function openChat(targetId) {
+            localStorage.setItem('active_chat_user', targetId);
+            window.location.href = 'message.html';
+        }
+
+        function listenRealtime() {
+            client.channel('dashboard-feed')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${currentUser.id}` }, () => {
+                    showToast("New Notification! 🔔"); loadNotifications();
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUser.id}` }, () => {
+                    showToast("New Message! 💌"); loadNotifications();
+                })
+                .subscribe();
+        }
+
+        function toggleEditMode(show) {
+            document.getElementById('view-mode-container').classList.toggle('hidden', show);
+            document.getElementById('edit-mode-container').classList.toggle('hidden', !show);
+            document.getElementById('btn-edit-toggle').classList.toggle('hidden', show);
+        }
+        function openAvatarStudio() { 
+            document.getElementById('studio-seed').value = document.getElementById('p-fname').value;
+            updateStudioPreview(); document.getElementById('avatarModal').style.display = 'flex'; 
+        }
+        function updateStudioPreview() {
+            const style = document.getElementById('studio-style').value;
+            const seed = document.getElementById('studio-seed').value || 'User';
+            document.getElementById('studio-preview').style.background = `url("https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=transparent") center/cover`;
+        }
+        function randomizeSeed() { document.getElementById('studio-seed').value = Math.random().toString(36).substring(7); updateStudioPreview(); }
+        async function saveAvatar() {
+            const style = document.getElementById('studio-style').value;
+            const seed = document.getElementById('studio-seed').value || 'User';
+            const url = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=bc13fe`;
+            await client.from('profiles').update({ avatar_url: url }).eq('email', currentUser.email);
+            showToast("Avatar Saved!"); loadProfile(); closeModal('avatarModal');
+        }
+        async function updateProfile() {
+            const updates = {
+                status: document.getElementById('p-status').value, bio: document.getElementById('p-bio').value,
+                socials: { fb: document.getElementById('p-fb').value, wa: document.getElementById('p-wa').value, ig: document.getElementById('p-ig').value }
+            };
+            await client.from('profiles').update(updates).eq('email', currentUser.email);
+            showToast("Profile Updated!"); loadProfile(); toggleEditMode(false);
+        }
+        function openDeleteModal() { document.getElementById('deleteModal').style.display = 'flex'; }
+        async function confirmDeleteAccount() {
+            if(document.getElementById('delete-confirm-input').value !== "DELETE") { showToast("Type DELETE to confirm.", 'error'); return; }
+            await client.from('profiles').delete().eq('email', currentUser.email);
+            showToast("Account Deleted."); setTimeout(async()=>{ await client.auth.signOut(); window.location.href='auth.html'; }, 1500);
+        }
+        
+        function openModal(name, fac, bioEnc, socEnc, id, age, gender, picUrl, status) {
             document.getElementById('m-name').innerText = name;
             document.getElementById('m-faculty').innerText = fac;
             document.getElementById('m-details').innerText = `${age} Years • ${gender}`;
             document.getElementById('m-bio').innerText = decodeURIComponent(bioEnc);
             document.getElementById('m-userid').value = id;
             document.getElementById('m-pic').style.background = `url('${picUrl}') center/cover`;
+            
+            const statusEl = document.getElementById('m-status-badge');
+            statusEl.innerText = status || 'Single';
+            statusEl.className = 'status-tag';
+            if(status === 'Single') statusEl.classList.add('green');
+            else if(status === 'In a Relationship') statusEl.classList.add('red');
+            else statusEl.classList.add('orange');
+
             const soc = JSON.parse(decodeURIComponent(socEnc));
             document.getElementById('m-fb').href = soc.fb || '#';
             document.getElementById('m-wa').href = soc.wa ? `https://wa.me/${soc.wa}` : '#';
@@ -635,24 +683,15 @@
             document.getElementById('profileModal').style.display = 'flex';
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        async function sendCrushRequestFromModal() {
-            const receiver = document.getElementById('m-userid').value;
-            const { error } = await client.from('notifications').insert({ sender_id: currentUser.id, receiver_id: receiver, type: 'crush_request' });
-            if (error) showToast("Error sending request", 'error');
-            else { showToast("Crush Request Sent! 💘", 'success'); closeModal('profileModal'); }
-        }
+        function sendCrushRequestFromModal() { sendCrush(document.getElementById('m-userid').value); closeModal('profileModal'); }
+        function sendMessageFromModal() { openChat(document.getElementById('m-userid').value); }
         function switchTab(section, el) {
-            document.getElementById('profile-section').style.display = 'none';
-            document.getElementById('search-section').style.display = 'none';
+            document.getElementById('profile-section').style.display = section === 'profile' ? 'block' : 'none';
+            document.getElementById('search-section').style.display = section === 'search' ? 'block' : 'none';
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-            if (section === 'profile') document.getElementById('profile-section').style.display = 'block';
-            else document.getElementById('search-section').style.display = 'block';
             el.classList.add('active');
         }
         async function logout() { await client.auth.signOut(); window.location.href = 'auth.html'; }
     </script>
 </body>
 </html>
-
-
-
