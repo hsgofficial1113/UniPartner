@@ -36,7 +36,7 @@
         .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; text-align: center; color: #555; z-index: 1; }
         .chat-area { display: none; flex: 1; flex-direction: column; background: #000; position: relative; z-index: 10; }
 
-        /* INBOX LIST */
+        /* LIST */
         .search-bar { padding: 20px; border-bottom: 1px solid var(--border); }
         .search-bar input { width: 100%; background: #1a1a1a; border: 1px solid #333; padding: 12px 15px; border-radius: 8px; color: white; outline: none; font-size: 1rem; }
         .users-scroll { flex: 1; overflow-y: auto; }
@@ -60,24 +60,17 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
         .dot.offline { background: #666; }
+        .typing-text { color: var(--success); font-weight: 600; font-style: italic; display: none; }
         
-        /* --- MESSAGES ALIGNMENT & COLORS --- */
+        /* MESSAGES */
         .messages-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        
         .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; position: relative; }
-        
-        /* SENT (Right) */
         .msg-wrapper.sent { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.sent .msg { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
-        .msg-wrapper.sent .action-triggers { left: -75px; } /* Controls to the left */
-
-        /* RECEIVED (Left) */
         .msg-wrapper.received { align-self: flex-start; align-items: flex-start; }
         .msg-wrapper.received .msg { background: #222; color: #ddd; border-bottom-left-radius: 4px; }
-        .msg-wrapper.received .action-triggers { right: -40px; } /* Controls to the right */
 
         .msg { padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; position: relative; }
-        
         .msg-meta { font-size: 0.65rem; margin-top: 4px; display: flex; gap: 6px; opacity: 0.7; }
         .status-text { font-weight: 700; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.5px; }
         .status-text.read { color: var(--read-color); }
@@ -85,15 +78,16 @@
 
         .quoted-msg { background: rgba(0,0,0,0.3); border-left: 3px solid rgba(255,255,255,0.6); padding: 8px 10px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 8px; text-align: left; }
 
-        /* ACTION TRIGGERS */
         .action-triggers { position: absolute; top: 5px; display: flex; gap: 5px; opacity: 0; transition: 0.2s; }
         .msg-wrapper:hover .action-triggers { opacity: 1; }
-        
+        .msg-wrapper.sent .action-triggers { left: -75px; }
+        .msg-wrapper.received .action-triggers { right: -40px; }
+
         .msg-btn { width: 28px; height: 28px; border-radius: 50%; background: #1a1a1a; color: #888; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.8rem; border: 1px solid #333; }
         .msg-btn:hover { background: #333; color: white; }
         .btn-del:hover { background: var(--danger); border-color: var(--danger); }
 
-        /* INPUT AREA */
+        /* INPUT */
         .input-container { background: #0a0a0a; border-top: 1px solid var(--border); position: relative; }
         .reply-preview { background: #151515; padding: 10px 20px; border-bottom: 1px solid #333; display: none; align-items: center; justify-content: space-between; border-left: 4px solid var(--accent); }
         .reply-preview.active { display: flex; }
@@ -140,24 +134,26 @@
         <div class="contact-list" id="contact-list">
             <div class="search-bar"><input type="text" id="search-user" placeholder="Search chats..." onkeyup="filterUsers()"></div>
             <div class="users-scroll" id="users-grid">
-                <p style="text-align:center; color:#555; margin-top:20px;">Loading Inbox...</p>
+                <p style="text-align:center; color:#555; margin-top:20px;">Loading...</p>
             </div>
         </div>
 
         <div class="empty-state" id="empty-state">
             <i class="fa-regular fa-comments" style="font-size:4rem; margin-bottom:20px; color:#222;"></i>
-            <h2>UniPartner</h2><p>Select a chat to view messages</p>
+            <h2>UniPartner</h2><p>Select a chat to start messaging</p>
         </div>
 
         <div class="chat-area" id="chat-area">
             <div class="chat-header">
                 <div class="header-left">
                     <i class="fa-solid fa-arrow-left" style="cursor:pointer; font-size:1.2rem; color:#ccc; display:none;" onclick="closeChat()" id="back-btn"></i>
-                    <div class="u-avatar" id="chat-header-pic" style="width:35px; height:35px;"></div>
+                    <div class="u-avatar" id="chat-header-pic" style="width:40px; height:40px;"></div>
                     <div>
                         <h3 id="chat-header-name">User</h3>
                         <div class="status-badge" id="chat-header-status">
-                            <span class="dot offline"></span> <span>Offline</span>
+                            <span id="header-status-dot" class="dot offline"></span> 
+                            <span id="header-status-text">Offline</span>
+                            <span id="typing-indicator" class="typing-text">typing...</span>
                         </div>
                     </div>
                 </div>
@@ -177,14 +173,13 @@
                     <div class="emoji-item" onclick="addEmoji('😍')">😍</div>
                     <div class="emoji-item" onclick="addEmoji('👍')">👍</div>
                     <div class="emoji-item" onclick="addEmoji('😊')">😊</div>
-                    <div class="emoji-item" onclick="addEmoji('😭')">😭</div>
                     <div class="emoji-item" onclick="addEmoji('🔥')">🔥</div>
                     <div class="emoji-item" onclick="addEmoji('💀')">💀</div>
                 </div>
 
                 <div class="input-area">
                     <button class="icon-btn" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile"></i></button>
-                    <input type="text" id="msg-input" placeholder="Type a message..." onkeypress="handleEnter(event)">
+                    <input type="text" id="msg-input" placeholder="Type a message..." onkeypress="handleEnter(event)" oninput="handleTyping()">
                     <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
@@ -202,6 +197,8 @@
         let currentReplyId = null;
         let currentReplyContent = null;
         let userListCache = [];
+        let typingTimeout = null;
+        let isTypingSent = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await client.auth.getSession();
@@ -221,6 +218,7 @@
             await client.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
         }
 
+        // --- 1. INBOX ---
         async function loadInbox() {
             const { data: msgs } = await client.from('messages')
                 .select('sender_id, receiver_id, content, created_at, is_read')
@@ -251,6 +249,7 @@
             });
         }
 
+        // --- 2. CHAT ---
         async function openChat(userId) {
             activeChatUser = userId;
             const user = userListCache.find(u => u.id === userId) || {};
@@ -275,11 +274,29 @@
         }
 
         function updateHeaderStatus(lastSeen) {
-            const statusEl = document.getElementById('chat-header-status');
+            const dot = document.getElementById('header-status-dot');
+            const txt = document.getElementById('header-status-text');
             const now = new Date();
             const seen = lastSeen ? new Date(lastSeen) : new Date(0);
-            if ((now - seen) / 1000 / 60 < 2) statusEl.innerHTML = `<span class="dot online"></span> <span style="color:var(--success)">Online</span>`;
-            else statusEl.innerHTML = `<span class="dot offline"></span> <span style="color:#666">Offline</span>`;
+            if ((now - seen) / 1000 / 60 < 2) {
+                dot.className = 'dot online'; txt.innerText = 'Online'; txt.style.color = 'var(--success)';
+            } else {
+                dot.className = 'dot offline'; txt.innerText = 'Offline'; txt.style.color = '#666';
+            }
+        }
+
+        // --- TYPING BROADCAST LOGIC ---
+        function handleTyping() {
+            if (!activeChatUser) return;
+            if (!isTypingSent) {
+                isTypingSent = true;
+                client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: true } });
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTypingSent = false;
+                client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
+            }, 2000);
         }
 
         function closeChat() {
@@ -300,8 +317,7 @@
 
         function renderMessage(msg) {
             const box = document.getElementById('messages-box');
-            if (document.getElementById(`msg-${msg.id}`)) return; // Avoid duplicates
-
+            if (document.getElementById(`msg-${msg.id}`)) return;
             const isMe = msg.sender_id === currentUser.id;
             let replyHtml = msg.reply_to ? `<div class="quoted-msg"><strong>${msg.reply_to.sender_id === currentUser.id ? "You" : "Them"}</strong><br>${msg.reply_to.content}</div>` : '';
             let statusHtml = isMe ? `<span class="status-text ${msg.is_read ? 'read' : 'sent'}">${msg.is_read ? 'Read' : 'Sent'}</span>` : '';
@@ -310,15 +326,8 @@
             const div = document.createElement('div');
             div.id = `msg-${msg.id}`;
             div.className = `msg-wrapper ${isMe ? 'sent' : 'received'}`;
-            div.innerHTML = `
-                <div class="msg">
-                    ${replyHtml}${msg.content}
-                    <div class="msg-meta">${formatTime(msg.created_at)} ${statusHtml}</div>
-                </div>
-                <div class="action-triggers">
-                    ${deleteBtn}
-                    <div class="msg-btn" onclick="replyToMessage('${msg.id}', '${msg.content.replace(/'/g, "\\'")}')"><i class="fa-solid fa-reply"></i></div>
-                </div>`;
+            div.innerHTML = `<div class="msg">${replyHtml}${msg.content}<div class="msg-meta">${formatTime(msg.created_at)} ${statusHtml}</div></div>
+                <div class="action-triggers">${deleteBtn}<div class="msg-btn" onclick="replyToMessage('${msg.id}', '${msg.content.replace(/'/g, "\\'")}')"><i class="fa-solid fa-reply"></i></div></div>`;
             box.appendChild(div);
             scrollToBottom();
         }
@@ -329,25 +338,14 @@
             if (!text || !activeChatUser) return;
             
             const tempId = 'temp-' + Date.now();
-            const optimisticMsg = { 
-                id: tempId, 
-                content: text, 
-                sender_id: currentUser.id, 
-                receiver_id: activeChatUser, 
-                created_at: new Date().toISOString(),
-                is_read: false,
-                reply_to: currentReplyId ? { content: currentReplyContent, sender_id: null } : null
-            };
-
-            renderMessage(optimisticMsg); // Optimistic UI
-            input.value = ""; 
-            const replyId = currentReplyId;
-            cancelReply();
-
+            renderMessage({ id: tempId, content: text, sender_id: currentUser.id, receiver_id: activeChatUser, created_at: new Date().toISOString(), is_read: false, reply_to: currentReplyId ? { content: currentReplyContent, sender_id: null } : null });
+            
+            input.value = ""; const replyId = currentReplyId; cancelReply();
             const { data, error } = await client.from('messages').insert({ content: text, sender_id: currentUser.id, receiver_id: activeChatUser, reply_to_id: replyId }).select();
-            if(!error) {
-                document.getElementById(`msg-${tempId}`).id = `msg-${data[0].id}`;
-            }
+            if(!error) document.getElementById(`msg-${tempId}`).id = `msg-${data[0].id}`;
+            
+            // Stop typing indicator on send
+            client.channel(`chat-${activeChatUser}`).send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, typing: false } });
         }
 
         async function deleteMessage(msgId) {
@@ -366,15 +364,28 @@
 
         function subscribeToChat() {
             if(messageSubscription) client.removeChannel(messageSubscription);
-            messageSubscription = client.channel(`chat-${activeChatUser}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
-                const msg = payload.new;
-                if (msg.sender_id === activeChatUser) {
-                    let fullMsg = msg;
-                    if(msg.reply_to_id) { const { data } = await client.from('messages').select('content, sender_id').eq('id', msg.reply_to_id).single(); fullMsg.reply_to = data; }
-                    renderMessage(fullMsg);
-                    await client.from('messages').update({ is_read: true }).eq('id', msg.id);
-                }
-            }).subscribe();
+            messageSubscription = client.channel(`chat-${activeChatUser}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
+                    const msg = payload.new;
+                    if (msg.sender_id === activeChatUser) {
+                        let fullMsg = msg;
+                        if(msg.reply_to_id) { const { data } = await client.from('messages').select('content, sender_id').eq('id', msg.reply_to_id).single(); fullMsg.reply_to = data; }
+                        renderMessage(fullMsg);
+                        await client.from('messages').update({ is_read: true }).eq('id', msg.id);
+                    }
+                })
+                .on('broadcast', { event: 'typing' }, payload => {
+                    if (payload.payload.userId === activeChatUser) {
+                        const statusTxt = document.getElementById('header-status-text');
+                        const typingInd = document.getElementById('typing-indicator');
+                        if (payload.payload.typing) { statusTxt.style.display = 'none'; typingInd.style.display = 'inline'; }
+                        else { statusTxt.style.display = 'inline'; typingInd.style.display = 'none'; }
+                    }
+                })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${activeChatUser}` }, payload => {
+                    updateHeaderStatus(payload.new.last_seen);
+                })
+                .subscribe();
         }
 
         async function handleIncomingMessage(msg) {
@@ -388,7 +399,7 @@
         }
 
         function toggleEmoji() { const p = document.getElementById('emoji-picker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; }
-        function addEmoji(e) { document.getElementById('msg-input').value += e; document.getElementById('emoji-picker').style.display = 'none'; document.getElementById('msg-input').focus(); }
+        function addEmoji(e) { document.getElementById('msg-input').value += e; document.getElementById('emoji-picker').style.display = 'none'; document.getElementById('msg-input').focus(); handleTyping(); }
         function replyToMessage(id, content) { currentReplyId = id; currentReplyContent = content; document.getElementById('reply-bar').classList.add('active'); document.getElementById('reply-text').innerText = content; document.getElementById('msg-input').focus(); }
         function cancelReply() { currentReplyId = null; currentReplyContent = null; document.getElementById('reply-bar').classList.remove('active'); }
         function scrollToBottom() { const box = document.getElementById('messages-box'); box.scrollTop = box.scrollHeight; }
